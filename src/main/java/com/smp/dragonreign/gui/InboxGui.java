@@ -1,6 +1,7 @@
 package com.smp.dragonreign.gui;
 
 import com.smp.dragonreign.DragonReign;
+import com.smp.dragonreign.Perms;
 import com.smp.dragonreign.inbox.Inbox;
 import com.smp.dragonreign.inbox.InboxEntry;
 import com.smp.dragonreign.util.Msg;
@@ -30,7 +31,9 @@ public final class InboxGui {
 
     private static final int PAGE_SIZE = 45;
     private static final int SLOT_PREV = 45;
+    private static final int SLOT_BACK = 48;
     private static final int SLOT_INFO = 49;
+    private static final int SLOT_CLOSE = 50;
     private static final int SLOT_NEXT = 53;
 
     private static final DateTimeFormatter STAMP =
@@ -74,7 +77,23 @@ public final class InboxGui {
                         Msg.mm("<yellow>Left-click</yellow> <gray>an alert to mark it read</gray>"),
                         Msg.mm("<yellow>Shift-click</yellow> <gray>to dismiss it</gray>"))));
 
+        inv.setItem(SLOT_BACK, Items.of(Material.OAK_DOOR,
+                Msg.mm("<yellow>« Back to menu</yellow>"), List.of(Msg.mm("<gray>Return to the config menu</gray>"))));
+        inv.setItem(SLOT_CLOSE, Items.of(Material.BARRIER,
+                Msg.mm("<red>Close</red>"), List.of(Msg.mm("<gray>Close this menu</gray>"))));
+        fillFooter(inv);
+
         player.openInventory(inv);
+    }
+
+    /** Pane out the unused footer slots so the nav row reads as intentional. */
+    private void fillFooter(Inventory inv) {
+        ItemStack pane = Items.filler();
+        for (int i = 45; i < 54; i++) {
+            if (inv.getItem(i) == null) {
+                inv.setItem(i, pane);
+            }
+        }
     }
 
     private ItemStack toItem(InboxEntry e) {
@@ -109,6 +128,18 @@ public final class InboxGui {
         }
         if (slot == SLOT_NEXT) {
             Scheduling.later(plugin, () -> open(player, currentPage + 1), 1L);
+            return;
+        }
+        if (slot == SLOT_BACK) {
+            if (player.hasPermission(Perms.GUI)) {
+                Scheduling.later(plugin, () -> plugin.configGui().open(player), 1L);
+            } else {
+                player.closeInventory();
+            }
+            return;
+        }
+        if (slot == SLOT_CLOSE) {
+            player.closeInventory();
             return;
         }
         if (slot < 0 || slot >= PAGE_SIZE) {

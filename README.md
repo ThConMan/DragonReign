@@ -70,7 +70,9 @@ Players with `dragonreign.bypass` ignore all protections.
 | `/dragonreign info` | Public: owner, rule states, countdown status. Admins additionally see the egg's exact location, last-activity, strict-ownership posture, and unread inbox count. |
 | `/giveegg <player>` | Hand the egg you're holding to another online player (transfers ownership). |
 
-Aliases for `/dragonreign`: `/dreign`, `/degg`. All commands tab-complete.
+Short alias: **`/dr`** (also `/dreign`, `/degg`) — e.g. `/dr gui`, `/dr respawn force`.
+Tab-complete only suggests the subcommands you have permission for, and running one without
+its permission does **nothing**: no error, no reply.
 
 ---
 
@@ -79,13 +81,26 @@ Aliases for `/dragonreign`: `/dreign`, `/degg`. All commands tab-complete.
 | Permission | Default | Grants |
 |---|---|---|
 | `dragonreign.bypass` | op | Ignores **all** protections. |
-| `dragonreign.admin` | op | All GUIs and the `gui`/`log`/`inbox`/`respawn`/`cancel`/`reload` subcommands; the sensitive lines of `/dragonreign info` (exact egg location, last-activity, strict-ownership posture, inbox count); receives inbox DMs and join notices. |
 | `dragonreign.giveegg` | everyone | `/giveegg`. |
+| `dragonreign.command.info` | everyone | `/dr info` (the public readout). |
+| `dragonreign.command.gui` | op | Open the config GUI. |
+| `dragonreign.command.history` | op | Open the history GUI (`/dr log`). |
+| `dragonreign.command.inbox` | op | Open the staff inbox GUI. |
+| `dragonreign.command.respawn` | op | `/dr respawn [force]`. |
+| `dragonreign.command.cancel` | op | `/dr cancel`. |
+| `dragonreign.command.reload` | op | `/dr reload`. |
+| `dragonreign.gui.teleport` | op | Use the teleport-to-egg button in the config GUI. |
+| `dragonreign.admin` | op | Parent node — grants every `command.*` and `gui.*` node above. |
 
-`/dragonreign info` is usable by everyone but only reveals a lightweight public view
-(owner + which rules are on + countdown status) to non-admins; the egg's exact
-coordinates and staff-facing detail are gated behind `dragonreign.admin` so the keeper's
-base can't be looked up by anyone on demand.
+Every capability is its own node, so you can hand a helper exactly one (e.g. only
+`dragonreign.command.history`) via LuckPerms; `dragonreign.admin` rolls them all up.
+**Anyone missing the relevant node gets no response at all** — the subcommand is hidden
+from tab-complete and silently does nothing.
+
+`/dr info` stays public by default (`dragonreign.command.info` is on for everyone) but only
+shows a lightweight view — owner, which rules are on, countdown status. The egg's exact
+coordinates and staff detail stay gated behind `dragonreign.admin` so the keeper's base
+can't be looked up on demand. Revoke `dragonreign.command.info` to hide the readout too.
 
 ---
 
@@ -94,12 +109,14 @@ base can't be looked up by anyone on demand.
 - **Config GUI** — one wool toggle per rule (lime = on, red = off, click to flip and
   persist), including the **Respawn Countdown** and **Strict Ownership** toggles; a clock
   to bump `inactivity-days` (left +1 / right −1, shift = ±7); a button to cycle the sound
-  mode; an **Open Inbox** button; and a **Teleport to Egg** button that warps you to the
-  egg when it's placed (greyed out while it's being carried or unclaimed). Every button
-  carries explanatory hover lore, and the whole GUI reflects live config on every click.
+  mode; **Open Inbox** and **Open History** buttons; a **Teleport to Egg** button that warps
+  you to the egg when it's placed (greyed out while it's carried or unclaimed); and a
+  **Close** button. Every button carries explanatory hover lore, the empty slots are framed
+  with panes, and the whole GUI reflects live config on every click.
 - **History GUI** — newest-first, paginated. Each entry's icon hints at the event
   type; the name shows the type, who, and a relative time; the lore carries the full
-  detail, exact `world x,y,z`, the absolute timestamp, and the actor's UUID.
+  detail, exact `world x,y,z`, the absolute timestamp, and the actor's UUID. Like the
+  Inbox GUI, it has **« Back to menu** and **Close** buttons in the footer.
 - **Inbox GUI** — newest-first, paginated, severity-coloured (green INFO / gold WARN /
   red CRITICAL). Unread alerts glow. **Left-click** marks an alert read; **shift-click**
   dismisses it. Reachable from `/dragonreign inbox` or the Config GUI button.

@@ -1,6 +1,7 @@
 package com.smp.dragonreign.command;
 
 import com.smp.dragonreign.DragonReign;
+import com.smp.dragonreign.Perms;
 import com.smp.dragonreign.config.ConfigManager;
 import com.smp.dragonreign.model.EventType;
 import com.smp.dragonreign.util.Egg;
@@ -27,6 +28,9 @@ public final class GiveEggCommand implements TabExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         ConfigManager config = plugin.config();
+        if (!sender.hasPermission(Perms.GIVEEGG)) {
+            return true; // silent — no reply without the permission
+        }
         if (!(sender instanceof Player giver)) {
             sender.sendMessage(Msg.prefixed(config.getPrefix(), "<red>Only players can give the egg.</red>"));
             return true;

@@ -1,6 +1,7 @@
 package com.smp.dragonreign.command;
 
 import com.smp.dragonreign.DragonReign;
+import com.smp.dragonreign.Perms;
 import com.smp.dragonreign.config.ConfigManager;
 import com.smp.dragonreign.model.EggLocation;
 import com.smp.dragonreign.util.Msg;
@@ -17,8 +18,6 @@ import java.util.UUID;
 /** /dragonreign (dreign, degg) — admin GUIs, reload, and an info readout. */
 public final class DragonReignCommand implements TabExecutor {
 
-    private static final String ADMIN = "dragonreign.admin";
-
     private final DragonReign plugin;
 
     public DragonReignCommand(DragonReign plugin) {
@@ -29,16 +28,14 @@ public final class DragonReignCommand implements TabExecutor {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         ConfigManager config = plugin.config();
         if (args.length == 0) {
-            sender.sendMessage(Msg.prefixed(config.getPrefix(),
-                    "<gray>Subcommands: <white>gui</white>, <white>log</white>, <white>inbox</white>, "
-                            + "<white>respawn [force]</white>, <white>cancel</white>, <white>reload</white>, <white>info</white></gray>"));
+            showInfo(sender);
             return true;
         }
 
         switch (args[0].toLowerCase()) {
             case "gui" -> {
-                if (!requireAdmin(sender)) {
-                    return true;
+                if (!sender.hasPermission(Perms.GUI)) {
+                    return true; // silent — no reply for the unauthorized
                 }
                 if (!(sender instanceof Player player)) {
                     sender.sendMessage(Msg.prefixed(config.getPrefix(), "<red>Players only.</red>"));
@@ -47,7 +44,7 @@ public final class DragonReignCommand implements TabExecutor {
                 plugin.configGui().open(player);
             }
             case "log", "history" -> {
-                if (!requireAdmin(sender)) {
+                if (!sender.hasPermission(Perms.HISTORY)) {
                     return true;
                 }
                 if (!(sender instanceof Player player)) {
@@ -57,7 +54,7 @@ public final class DragonReignCommand implements TabExecutor {
                 plugin.historyGui().open(player, 0);
             }
             case "inbox" -> {
-                if (!requireAdmin(sender)) {
+                if (!sender.hasPermission(Perms.INBOX)) {
                     return true;
                 }
                 if (!(sender instanceof Player player)) {
@@ -67,7 +64,7 @@ public final class DragonReignCommand implements TabExecutor {
                 plugin.inboxGui().open(player, 0);
             }
             case "respawn" -> {
-                if (!requireAdmin(sender)) {
+                if (!sender.hasPermission(Perms.RESPAWN)) {
                     return true;
                 }
                 if (args.length >= 2 && args[1].equalsIgnoreCase("force")) {
@@ -91,29 +88,42 @@ public final class DragonReignCommand implements TabExecutor {
                 }
             }
             case "cancel" -> {
-                if (!requireAdmin(sender)) {
+                if (!sender.hasPermission(Perms.CANCEL)) {
                     return true;
                 }
                 plugin.countdown().cancelByAdmin(sender);
             }
             case "reload" -> {
-                if (!requireAdmin(sender)) {
+                if (!sender.hasPermission(Perms.RELOAD)) {
                     return true;
                 }
                 plugin.reloadEverything();
                 sender.sendMessage(Msg.prefixed(config.getPrefix(), "<green>Configuration reloaded.</green>"));
             }
-            case "info" -> sendInfo(sender);
-            default -> sender.sendMessage(Msg.prefixed(config.getPrefix(),
-                    "<red>Unknown subcommand. Try <white>gui</white>, <white>log</white>, <white>inbox</white>, "
-                            + "<white>respawn</white>, <white>cancel</white>, <white>reload</white>, or <white>info</white>.</red>"));
+            case "info" -> showInfo(sender);
+            default -> {
+                // Only hint at the syntax for someone who could use it; everyone else gets nothing.
+                if (sender.hasPermission(Perms.ADMIN)) {
+                    sender.sendMessage(Msg.prefixed(config.getPrefix(),
+                            "<red>Unknown subcommand. Try <white>gui</white>, <white>log</white>, <white>inbox</white>, "
+                                    + "<white>respawn</white>, <white>cancel</white>, <white>reload</white>, or <white>info</white>.</red>"));
+                }
+            }
         }
         return true;
     }
 
+    /** Show the info readout, but only to someone who holds the (default-true) info node. */
+    private void showInfo(CommandSender sender) {
+        if (!sender.hasPermission(Perms.INFO)) {
+            return; // silent
+        }
+        sendInfo(sender);
+    }
+
     private void sendInfo(CommandSender sender) {
         ConfigManager c = plugin.config();
-        boolean admin = sender.hasPermission(ADMIN);
+        boolean admin = sender.hasPermission(Perms.ADMIN);
         UUID owner = plugin.store().getOwner();
         String ownerName = owner == null ? "none (unclaimed)" : Players.name(owner);
 
@@ -162,28 +172,22 @@ public final class DragonReignCommand implements TabExecutor {
         return on ? "<green>on</green>" : "<red>off</red>";
     }
 
-    private boolean requireAdmin(CommandSender sender) {
-        if (sender.hasPermission(ADMIN)) {
-            return true;
-        }
-        sender.sendMessage(Msg.prefixed(plugin.config().getPrefix(), "<red>You don't have permission for that.</red>"));
-        return false;
-    }
-
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (args.length == 1) {
+            // Only suggest what the sender can actually run — no probing the command's shape.
             List<String> subs = new ArrayList<>();
-            subs.add("info");
-            if (sender.hasPermission(ADMIN)) {
-                subs.add("gui");
+            if (sender.hasPermission(Perms.INFO)) subs.add("info");
+            if (sender.hasPermission(Perms.GUI)) subs.add("gui");
+            if (sender.hasPermission(Perms.HISTORY)) {
                 subs.add("log");
                 subs.add("history");
-                subs.add("inbox");
-                subs.add("respawn");
-                subs.add("cancel");
-                subs.add("reload");
             }
+            if (sender.hasPermission(Perms.INBOX)) subs.add("inbox");
+            if (sender.hasPermission(Perms.RESPAWN)) subs.add("respawn");
+            if (sender.hasPermission(Perms.CANCEL)) subs.add("cancel");
+            if (sender.hasPermission(Perms.RELOAD)) subs.add("reload");
+
             String prefix = args[0].toLowerCase();
             List<String> out = new ArrayList<>();
             for (String s : subs) {
@@ -193,8 +197,8 @@ public final class DragonReignCommand implements TabExecutor {
             }
             return out;
         }
-        // `/dragonreign respawn <force>`
-        if (args.length == 2 && args[0].equalsIgnoreCase("respawn") && sender.hasPermission(ADMIN)) {
+        // `/dr respawn <force>`
+        if (args.length == 2 && args[0].equalsIgnoreCase("respawn") && sender.hasPermission(Perms.RESPAWN)) {
             if ("force".startsWith(args[1].toLowerCase())) {
                 return List.of("force");
             }

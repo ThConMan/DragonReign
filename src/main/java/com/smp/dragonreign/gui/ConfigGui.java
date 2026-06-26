@@ -1,6 +1,7 @@
 package com.smp.dragonreign.gui;
 
 import com.smp.dragonreign.DragonReign;
+import com.smp.dragonreign.Perms;
 import com.smp.dragonreign.announce.SoundMode;
 import com.smp.dragonreign.config.ConfigManager;
 import com.smp.dragonreign.model.EggLocation;
@@ -34,6 +35,8 @@ public final class ConfigGui {
     private static final int SLOT_STRICT = 20;
     private static final int SLOT_INBOX = 25;
     private static final int SLOT_TELEPORT = 23; // jump to the egg when it's placed
+    private static final int SLOT_HISTORY = 24;  // open the history GUI
+    private static final int SLOT_CLOSE = 31;    // close the menu
 
     private final DragonReign plugin;
 
@@ -96,7 +99,28 @@ public final class ConfigGui {
                         Msg.mm("<yellow>Click to open</yellow>")),
                 unread > 0));
 
+        inv.setItem(SLOT_HISTORY, Items.of(Material.WRITABLE_BOOK,
+                Msg.mm("<light_purple>Open History</light_purple>"),
+                List.of(
+                        Msg.mm("<gray>Browse every egg event, newest first.</gray>"),
+                        Msg.mm("<yellow>Click to open</yellow>"))));
+
+        inv.setItem(SLOT_CLOSE, Items.of(Material.BARRIER,
+                Msg.mm("<red>Close</red>"),
+                List.of(Msg.mm("<gray>Close this menu</gray>"))));
+
         renderTeleport(inv);
+        fillEmpty(inv);
+    }
+
+    /** Frame the leftover slots with neutral panes so the menu reads cleanly. */
+    private void fillEmpty(Inventory inv) {
+        ItemStack pane = Items.filler();
+        for (int i = 0; i < inv.getSize(); i++) {
+            if (inv.getItem(i) == null) {
+                inv.setItem(i, pane);
+            }
+        }
     }
 
     /** "Teleport to egg" — live coords when it's placed, greyed-out when it's being carried. */
@@ -150,16 +174,33 @@ public final class ConfigGui {
             }
             case SLOT_SOUND -> c.setSoundMode(c.getSoundMode().next());
             case SLOT_INBOX -> {
+                if (!player.hasPermission(Perms.INBOX)) {
+                    return; // silently ignore — no inbox access
+                }
                 // Reopening mid-click can desync the cursor; defer one tick (same as HistoryGui).
                 Scheduling.later(plugin, () -> plugin.inboxGui().open(player, 0), 1L);
                 return;
             }
+            case SLOT_HISTORY -> {
+                if (!player.hasPermission(Perms.HISTORY)) {
+                    return;
+                }
+                Scheduling.later(plugin, () -> plugin.historyGui().open(player, 0), 1L);
+                return;
+            }
             case SLOT_TELEPORT -> {
+                if (!player.hasPermission(Perms.TELEPORT)) {
+                    return;
+                }
                 teleportToEgg(player);
                 return; // the teleport closes the GUI; nothing to re-render
             }
+            case SLOT_CLOSE -> {
+                player.closeInventory();
+                return;
+            }
             default -> {
-                return; // clicked a blank slot
+                return; // clicked a blank slot or a filler pane
             }
         }
         render(inv);

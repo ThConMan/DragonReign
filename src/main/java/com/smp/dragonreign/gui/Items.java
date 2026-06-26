@@ -19,6 +19,11 @@ final class Items {
         return of(material, name, lore, false);
     }
 
+    /** A blank, neutral pane for framing the empty slots of a GUI. */
+    static ItemStack filler() {
+        return of(Material.GRAY_STAINED_GLASS_PANE, Component.empty(), null);
+    }
+
     /** As above, plus an optional enchant-glint (used to mark unread inbox alerts). */
     static ItemStack of(Material material, Component name, List<Component> lore, boolean glint) {
         ItemStack item = new ItemStack(material);

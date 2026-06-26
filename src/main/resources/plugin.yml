@@ -1,5 +1,5 @@
 name: DragonReign
-version: 1.0.0
+version: 1.1.0
 main: com.smp.dragonreign.DragonReign
 api-version: '1.21'
 author: ThConMan
@@ -9,20 +9,53 @@ website: https://github.com/ThConMan/DragonReign
 commands:
   dragonreign:
     description: DragonReign admin and info commands.
-    usage: /dragonreign <gui|log|inbox|respawn [force]|cancel|reload|info>
-    aliases: [dreign, degg]
+    usage: /dr <gui|log|inbox|respawn [force]|cancel|reload|info>
+    aliases: [dr, dreign, degg]
   giveegg:
     description: Hand the Dragon Egg you are holding to another online player.
     usage: /giveegg <player>
-    permission: dragonreign.giveegg
+    # Permission (dragonreign.giveegg) is enforced in code so a denial is silent.
 
 permissions:
   dragonreign.bypass:
     description: Ignores all Dragon Egg protections (containers, drops, bundles, sweeps).
     default: op
-  dragonreign.admin:
-    description: Access to the config/history GUIs and admin subcommands.
-    default: op
   dragonreign.giveegg:
     description: Allows use of /giveegg.
     default: true
+  dragonreign.command.info:
+    description: View /dr info (the public egg readout).
+    default: true
+  dragonreign.command.gui:
+    description: Open the config GUI.
+    default: op
+  dragonreign.command.history:
+    description: Open the history GUI (/dr log).
+    default: op
+  dragonreign.command.inbox:
+    description: Open the staff inbox GUI.
+    default: op
+  dragonreign.command.respawn:
+    description: Trigger or force an egg respawn.
+    default: op
+  dragonreign.command.cancel:
+    description: Cancel an active respawn countdown.
+    default: op
+  dragonreign.command.reload:
+    description: Reload the configuration.
+    default: op
+  dragonreign.gui.teleport:
+    description: Use the teleport-to-egg button in the config GUI.
+    default: op
+  dragonreign.admin:
+    description: Grants every DragonReign admin permission (the command.* and gui.* nodes).
+    default: op
+    children:
+      dragonreign.command.info: true
+      dragonreign.command.gui: true
+      dragonreign.command.history: true
+      dragonreign.command.inbox: true
+      dragonreign.command.respawn: true
+      dragonreign.command.cancel: true
+      dragonreign.command.reload: true
+      dragonreign.gui.teleport: true
