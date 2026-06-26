@@ -94,8 +94,9 @@ base can't be looked up by anyone on demand.
 - **Config GUI** — one wool toggle per rule (lime = on, red = off, click to flip and
   persist), including the **Respawn Countdown** and **Strict Ownership** toggles; a clock
   to bump `inactivity-days` (left +1 / right −1, shift = ±7); a button to cycle the sound
-  mode; and an **Open Inbox** button. Every button carries explanatory hover lore, and
-  the whole GUI reflects live config on every click.
+  mode; an **Open Inbox** button; and a **Teleport to Egg** button that warps you to the
+  egg when it's placed (greyed out while it's being carried or unclaimed). Every button
+  carries explanatory hover lore, and the whole GUI reflects live config on every click.
 - **History GUI** — newest-first, paginated. Each entry's icon hints at the event
   type; the name shows the type, who, and a relative time; the lore carries the full
   detail, exact `world x,y,z`, the absolute timestamp, and the actor's UUID.
