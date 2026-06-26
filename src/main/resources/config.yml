@@ -1,0 +1,117 @@
+# ═══════════════════════════════════════════════════════════════════════════
+#  DragonReign  —  the one Dragon Egg, kept honest.
+#
+#  Every rule below can also be flipped live from the in-game config GUI
+#  (/dragonreign gui). Editing this file by hand and running /dragonreign reload
+#  works too. The protections apply to ALL dragon egg items, not a single tagged
+#  one, so they can't be laundered by duping a "fake" egg.
+# ═══════════════════════════════════════════════════════════════════════════
+
+# ── Protection rules (toggle these live) ───────────────────────────────────
+
+# Block the egg from entering ANY non-player inventory: chests, barrels, shulkers,
+# droppers, dispensers, furnaces, the ender chest, AND bundles of any color.
+# The egg may only sit in a player's inventory or be placed as a block.
+no-containers: true        # default: true
+
+# Cancel dropping the dragon egg (Q / drop key, AND drops from inside an open menu).
+no-drop: true              # default: true
+
+enderchest-sweep:
+  enabled: true            # default: true
+  interval-minutes: 5      # default: 5. safety-net scan of online players' ender chests
+
+respawn-on-inactivity:
+  enabled: true            # default: true
+  inactivity-days: 14      # default: 14. owner gone this long -> the egg respawns in the End
+  check-interval-minutes: 5   # default: 5. how often inactivity is checked
+
+# ── Respawn countdown ──────────────────────────────────────────────────────
+# When the inactivity check decides the egg should come back, it does NOT respawn
+# instantly. Instead a single countdown starts so players can rush to the End and
+# fight over the egg. If the absent keeper logs back in during the countdown it is
+# (optionally) cancelled and the egg stays put.
+respawn-countdown:
+  enabled: true                        # default: true. false = respawn instantly (old behaviour)
+  duration-seconds: 300                # default: 300. length of the contest window
+  # Seconds-remaining marks at which to broadcast a warning (chat + title + sound).
+  warn-at-seconds: [300, 60, 30, 10, 5, 4, 3, 2, 1]   # default shown
+  abort-on-owner-return: true          # default: true. keeper logging in cancels the countdown
+  tick-sound: "minecraft:block.note_block.pling"      # default shown; played at each warn mark
+
+# ── Strict ownership + IP / alt detection (OPTIONAL, OFF by default) ────────
+# PRIVACY: this NEVER stores raw IP addresses. On login it stores only a salted
+# SHA-256 hash of the address, used solely to ask "have two accounts connected from
+# the same place?". The salt below is auto-generated on first run.
+#
+# IP matching is imperfect — shared houses, school/uni networks, CGNAT, mobile
+# carriers and VPNs all make unrelated people look "linked". For that reason the
+# default behaviour is to FLAG (post a staff-inbox alert), NOT to enforce. Turn on
+# auto-enforce-ip-links only if you understand and accept those false positives.
+strict-ownership:
+  enabled: false                       # default: false. master switch for transfer checks
+  min-receiver-active-days: 7          # default: 7. receiver idle longer than this -> flagged
+  check-ip-alts: true                  # default: true. also use IP-link checks + group last-seen
+  auto-enforce-ip-links: false         # default: false. true = an alt hand-off won't reset the timer
+  # An IP hash shared by more than this many accounts is treated as a CGNAT/VPN/shared
+  # endpoint and IGNORED for alt-grouping — so an inactive keeper can't log in once through
+  # a busy public IP to borrow strangers' fresh logins and keep the egg immortal. 0 = no cap.
+  max-ip-group: 8                      # default: 8
+  ip-hash-salt: ""                     # AUTO-GENERATED on first run. Do NOT change or share it;
+                                       # changing it invalidates every hash already on record.
+
+# ── Staff inbox ────────────────────────────────────────────────────────────
+# A persisted alert queue for admins: alt/IP flags, dupe cleanups, respawns, etc.
+# Alerts DM any online admin immediately and are always queued for /dragonreign inbox.
+inbox:
+  enabled: true                        # default: true
+  notify-on-join: true                 # default: true. tell admins their unread count on join
+  max-entries: 200                     # default: 200. oldest alerts evicted past this
+
+# ── Announcement (fires when the egg respawns) ─────────────────────────────
+announce:
+  enabled: true            # default: true
+  # Chat broadcast lines (MiniMessage formatting).
+  chat:                    # default: the two lines below
+    - "<dark_purple>The Dragon Egg has returned to the End!</dark_purple>"
+    - "<gray>Its last keeper vanished. Claim it if you dare.</gray>"
+  # Big screen title shown to everyone.
+  title:
+    title: "<gradient:#5e2b97:#b388ff>The Egg Reigns Again</gradient>"   # default shown
+    subtitle: "<gray>A new keeper is needed</gray>"                       # default shown
+    fade-in-ticks: 10      # default: 10
+    stay-ticks: 70         # default: 70
+    fade-out-ticks: 20     # default: 20
+  # LIGHTNING | DRAGON_DEATH | BOTH | NONE | CUSTOM
+  sound:
+    mode: BOTH             # default: BOTH
+    custom-key: "minecraft:entity.ender_dragon.growl"   # default shown; only used when mode is CUSTOM
+
+# ── Bookkeeping ────────────────────────────────────────────────────────────
+history:
+  max-entries: 1000        # default: 1000
+
+# ── Messages ───────────────────────────────────────────────────────────────
+# All MiniMessage. The prefix is prepended to most plugin messages. Blocked-action
+# messages always explain WHY the action was stopped.
+messages:
+  prefix: "<dark_purple>[DragonReign]</dark_purple> "
+  blocked-container: "<red>The Dragon Egg can't go in there.</red>"
+  blocked-bundle: "<red>The Dragon Egg can't go in a bundle.</red>"
+  blocked-drop: "<red>You can't drop the Dragon Egg.</red>"
+  # Countdown messages. <seconds> is replaced with the number of seconds remaining.
+  countdown-started: "<gold>The egg's keeper has vanished — it returns to the End in <seconds>s unless they return!</gold>"
+  countdown-warn: "<yellow>The Dragon Egg respawns in <white><seconds>s</white> — get to the End!</yellow>"
+  # On-screen title + subtitle shown at each countdown warn mark. <seconds> is substituted.
+  countdown-title: "<gradient:#b388ff:#5e2b97>Egg Respawn</gradient>"
+  countdown-subtitle: "<yellow><seconds>s</yellow> <gray>until it returns to the End</gray>"
+  # <player> is replaced with the returning keeper's name.
+  keeper-returned: "<green><player> returned in time — the Dragon Egg stays where it is.</green>"
+
+# If false, BLOCKED_* events are not written to the history log (players are still
+# nudged). Keeps the log readable on servers with very persistent hoppers.
+log-blocks-to-history: true   # default: true
+
+# ── Advanced ───────────────────────────────────────────────────────────────
+# Blank = auto-detect the first THE_END world. Set a name to force a specific one.
+end-world-name: ""

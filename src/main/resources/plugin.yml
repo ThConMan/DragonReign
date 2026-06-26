@@ -1,0 +1,28 @@
+name: DragonReign
+version: 1.0.0
+main: com.smp.dragonreign.DragonReign
+api-version: '1.21'
+author: ThConMan
+description: Enforces a server's special Dragon Egg rules for an SMP.
+website: https://github.com/ThConMan/DragonReign
+
+commands:
+  dragonreign:
+    description: DragonReign admin and info commands.
+    usage: /dragonreign <gui|log|inbox|respawn [force]|cancel|reload|info>
+    aliases: [dreign, degg]
+  giveegg:
+    description: Hand the Dragon Egg you are holding to another online player.
+    usage: /giveegg <player>
+    permission: dragonreign.giveegg
+
+permissions:
+  dragonreign.bypass:
+    description: Ignores all Dragon Egg protections (containers, drops, bundles, sweeps).
+    default: op
+  dragonreign.admin:
+    description: Access to the config/history GUIs and admin subcommands.
+    default: op
+  dragonreign.giveegg:
+    description: Allows use of /giveegg.
+    default: true
