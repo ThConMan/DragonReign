@@ -32,6 +32,8 @@ public final class Perms {
     public static final String CMD_VICTOR = "dragonreign.command.victor";
     /** Player-facing cosmetic toggles (/dr particle, /dr title, /dr cosmetics). Default true. */
     public static final String COSMETICS = "dragonreign.command.cosmetics";
+    /** Get the in-game guide book (/dr guide). Default true. */
+    public static final String GUIDE = "dragonreign.command.guide";
 
     /** Marks a player as a Dragonlord (victor). Granted automatically at the threshold. */
     public static final String VICTOR = "dragonreign.victor";

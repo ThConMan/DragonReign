@@ -1,5 +1,5 @@
 name: DragonReign
-version: 1.2.2
+version: 1.3.0
 main: com.smp.dragonreign.DragonReign
 api-version: '1.21'
 author: ThConMan
@@ -10,7 +10,7 @@ softdepend: [PlaceholderAPI, LuckPerms, CMI, Essentials]
 commands:
   dragonreign:
     description: DragonReign admin and info commands.
-    usage: /dr <gui|log|inbox|respawn [force]|cancel|reload|victor|cosmetics|particle|title|info>
+    usage: /dr <guide|gui|log|inbox|respawn [force]|cancel|reload|victor|cosmetics|particle|title|info>
     aliases: [dr, dreign, degg]
   giveegg:
     description: Hand the Dragon Egg you are holding to another online player.
@@ -53,6 +53,9 @@ permissions:
     default: op
   dragonreign.command.cosmetics:
     description: Use the player cosmetic toggles (/dr cosmetics, particle, title).
+    default: true
+  dragonreign.command.guide:
+    description: Get the in-game Dragon Egg guide book (/dr guide).
     default: true
   dragonreign.victor:
     description: Marks a player as a Dragonlord. Granted automatically at the hold-time threshold.

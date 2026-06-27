@@ -118,6 +118,17 @@ public final class DragonReignCommand implements TabExecutor {
             case "particle" -> toggleCosmetic(sender, true);
             case "title" -> toggleCosmetic(sender, false);
             case "victor" -> handleVictor(sender, args);
+            case "guide", "book", "help" -> {
+                if (!sender.hasPermission(Perms.GUIDE)) {
+                    return true;
+                }
+                if (!(sender instanceof Player player)) {
+                    sender.sendMessage(Msg.prefixed(config.getPrefix(), "<red>Players only.</red>"));
+                    return true;
+                }
+                GuideBook.give(player);
+                player.sendMessage(Msg.prefixed(config.getPrefix(), "<green>The Dragon Egg guide is in your inventory.</green>"));
+            }
             case "info" -> showInfo(sender);
             default -> {
                 // Only hint at the syntax for someone who could use it; everyone else gets nothing.
@@ -263,6 +274,7 @@ public final class DragonReignCommand implements TabExecutor {
             // Only suggest what the sender can actually run — no probing the command's shape.
             List<String> subs = new ArrayList<>();
             if (sender.hasPermission(Perms.INFO)) subs.add("info");
+            if (sender.hasPermission(Perms.GUIDE)) subs.add("guide");
             if (sender.hasPermission(Perms.GUI)) subs.add("gui");
             if (sender.hasPermission(Perms.HISTORY)) {
                 subs.add("log");
