@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DragonReign — Documentation</title>
     <meta name="description" content="DragonReign documentation: install, the rules, commands, permissions, config, GUIs, and how to show the Dragonlord title in chat, tab, and nameplates.">
-    <link rel="icon" href="logo.svg">
+    <link rel="icon" href="logo.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
@@ -39,6 +39,7 @@
             <a href="#config">Config</a>
             <a href="#guis">In-game menus</a>
             <a href="#title">Showing the title</a>
+            <a href="#placeholders">Placeholders</a>
             <a href="#faq">FAQ</a>
         </nav>
     </aside>
@@ -68,15 +69,15 @@
             <h2>The rules</h2>
             <div class="docs-grid">
                 <div class="docs-grid-item"><h4>No containers</h4><p>The egg can only sit in a player inventory or be placed as a block — never a chest, ender chest, bundle, hopper, minecart, or any container.</p></div>
-                <div class="docs-grid-item"><h4>No drop</h4><p>You can't drop the egg on the ground.</p></div>
+                <div class="docs-grid-item"><h4>Drop control</h4><p>Dropping is a toggle (<span class="mono">no-drop</span>). When drops are allowed, a loose egg is <strong>fireproof</strong> (immune to lava, fire, cactus, explosions), <strong>floats out of lava and water</strong>, and never despawns — but still dies in the void and respawns at the End.</p></div>
                 <div class="docs-grid-item"><h4>Respawn on inactivity</h4><p>If the keeper is gone for <span class="mono">inactivity-days</span> (default 14), the egg respawns at the End portal.</p></div>
                 <div class="docs-grid-item"><h4>Staleness respawn</h4><p>If the egg sits untouched for <span class="mono">staleness-days</span> (default 10) it respawns even while the owner is online — no parking it forever.</p></div>
                 <div class="docs-grid-item"><h4>Respawn countdown</h4><p>The respawn isn't instant: a timed countdown warns the server so players can race to the End. If the keeper returns in time, it's cancelled.</p></div>
                 <div class="docs-grid-item"><h4>Egg compass</h4><p>Players near a placed egg get an action-bar arrow pointing at it — warmer the closer they get.</p></div>
                 <div class="docs-grid-item"><h4>Hold rewards</h4><p>The keeper earns escalating, configurable rewards for actively holding the egg. The ladder resets when the egg changes hands.</p></div>
                 <div class="docs-grid-item"><h4>Anti-AFK</h4><p>Rewards and Dragonlord time only build while you're truly playing. AFK pools and auto-clickers don't count.</p></div>
-                <div class="docs-grid-item"><h4>Void safety</h4><p>An egg that falls into the void is rebuilt at the End — the one egg can never be lost.</p></div>
-                <div class="docs-grid-item"><h4>Dragonlord cosmetics</h4><p>Hold the egg long enough (default 7 days of active time) to permanently earn the Dragonlord title and a glowing aura.</p></div>
+                <div class="docs-grid-item"><h4>Never lost</h4><p>A loose egg never despawns and is fireproof; if it falls into the void it's rebuilt at the End. There is always exactly one egg.</p></div>
+                <div class="docs-grid-item"><h4>Dragonlord aura</h4><p>Hold the egg long enough (default 7 days of active time) to permanently earn the Dragonlord title and a living aura: shimmering spirit-orbs that wander around you, <em>livewire</em> surges, lightning arcs between orbs, a coronation flourish, and reactivity to combat — every layer configurable.</p></div>
                 <div class="docs-grid-item"><h4>Staff inbox</h4><p>Alt/IP flags, dupe cleanups, and respawns alert online admins and queue for the rest.</p></div>
                 <div class="docs-grid-item"><h4>History log</h4><p>Every meaningful egg event is recorded and browsable in-game.</p></div>
             </div>
@@ -89,7 +90,9 @@
                 <table class="docs-table">
                     <thead><tr><th>Command</th><th>What it does</th></tr></thead>
                     <tbody>
-                        <tr><td><span class="mono">/dr info</span></td><td>Who holds the egg + which rules are on. Admins also see exact location and timers.</td></tr>
+                        <tr><td><span class="mono">/dr info</span></td><td>Friendly readout: who holds the egg, how long until it resets, and a nudge to the guide.</td></tr>
+                        <tr><td><span class="mono">/dr admininfo</span></td><td>Full technical readout: location, both reset timers, ownership posture, inbox. <span class="docs-tag docs-tag-op">op</span></td></tr>
+                        <tr><td><span class="mono">/dr guide</span></td><td>Get the in-game illustrated guide book.</td></tr>
                         <tr><td><span class="mono">/dr gui</span></td><td>Open the live settings menu. <span class="docs-tag docs-tag-op">op</span></td></tr>
                         <tr><td><span class="mono">/dr log</span></td><td>Open the egg history. <span class="docs-tag docs-tag-op">op</span></td></tr>
                         <tr><td><span class="mono">/dr inbox</span></td><td>Open the staff alert inbox. <span class="docs-tag docs-tag-op">op</span></td></tr>
@@ -114,6 +117,7 @@
                         <tr><td><span class="mono">dragonreign.bypass</span></td><td>op</td><td>Ignores all protections.</td></tr>
                         <tr><td><span class="mono">dragonreign.giveegg</span></td><td>everyone</td><td><span class="mono">/giveegg</span>.</td></tr>
                         <tr><td><span class="mono">dragonreign.command.info</span></td><td>everyone</td><td><span class="mono">/dr info</span>.</td></tr>
+                        <tr><td><span class="mono">dragonreign.command.admininfo</span></td><td>op</td><td><span class="mono">/dr admininfo</span>.</td></tr>
                         <tr><td><span class="mono">dragonreign.command.gui</span></td><td>op</td><td>The settings menu.</td></tr>
                         <tr><td><span class="mono">dragonreign.command.history</span></td><td>op</td><td>The history menu.</td></tr>
                         <tr><td><span class="mono">dragonreign.command.inbox</span></td><td>op</td><td>The staff inbox.</td></tr>
@@ -121,7 +125,7 @@
                         <tr><td><span class="mono">dragonreign.command.cancel</span></td><td>op</td><td>Cancel a countdown.</td></tr>
                         <tr><td><span class="mono">dragonreign.command.victor</span></td><td>op</td><td>Grant/revoke Dragonlord.</td></tr>
                         <tr><td><span class="mono">dragonreign.command.reload</span></td><td>op</td><td>Reload the config.</td></tr>
-                        <tr><td><span class="mono">dragonreign.victor</span></td><td>false</td><td>Marks a Dragonlord (auto-granted at the time threshold).</td></tr>
+                        <tr><td><span class="mono">dragonreign.victor</span></td><td>unregistered</td><td>Marks a Dragonlord — earned at the time threshold or granted explicitly. Deliberately not registered in plugin.yml so OP and <span class="mono">*</span> wildcards never auto-grant it.</td></tr>
                         <tr><td><span class="mono">dragonreign.admin</span></td><td>op</td><td>All of the above admin nodes.</td></tr>
                     </tbody>
                 </table>
@@ -142,12 +146,22 @@ rewards:
     - ["give %player% diamond 8", "xp add %player% 30 levels"]
 
 victor:
-  threshold-hours: 168     # active hold time to become a Dragonlord (7 days)
-  title: "&amp;6Dragonlord"    # the title (a rendered gradient by default)
-  particle: PORTAL         # the aura (the purple enderman swirl)
+  threshold-hours: 168            # active hold time to become a Dragonlord (7 days)
+  title: "&amp;6Dragonlord"           # the title (a rendered gradient by default)
+  particle: DUST_COLOR_TRANSITION # aura motes; shimmer aura-color -> aura-color-2
+  aura-color: '#9D4EDD'           # gradient start   (aura-color-2: '#4ED9FF' = end)
+  orbit-count: 7                  # wandering spirit-orbs around the player
+  livewire-intensity: 1.0         # how hard the orbs occasionally surge (0 = calm)
+  combat-reactivity: true         # aura intensifies when the holder fights/sprints/is hurt
+  arcs-enabled: true              # lightning arcs between nearby orbs
+  coronation-enabled: true        # one-time flourish on becoming a Dragonlord
+
+void-safety:
+  enabled: true                   # loose egg never despawns; void drops rebuild at the End
+  fireproof: true                 # loose egg immune to lava/fire; floats out of lava &amp; water
 
 chat:
-  enabled: false           # turn on if your chat plugin doesn't show the title</pre>
+  enabled: false                  # turn on if your chat plugin doesn't show the title</pre>
         </section>
 
         <section class="docs-section" id="guis">
@@ -167,6 +181,27 @@ chat:
                 <li><strong>Most chat / nameplate plugins</strong> — drop <span class="mono">%dragonreign_title%</span> into their name format.</li>
             </ul>
             <div class="docs-callout docs-callout-warn">Some chat handlers (notably <strong>CMI's display name</strong>) don't expand external PlaceholderAPI placeholders. For those, set <span class="mono">chat.enabled: true</span> and DragonReign adds the title to a victor's chat line itself.</div>
+        </section>
+
+        <section class="docs-section" id="placeholders">
+            <h2>Placeholders</h2>
+            <p>With PlaceholderAPI installed, DragonReign exposes these — drop them into TAB, a scoreboard sidebar, chat, or a nameplate:</p>
+            <div class="docs-table-wrap">
+                <table class="docs-table">
+                    <thead><tr><th>Placeholder</th><th>Shows</th></tr></thead>
+                    <tbody>
+                        <tr><td><span class="mono">%dragonreign_title%</span></td><td>The Dragonlord title (empty for non-victors).</td></tr>
+                        <tr><td><span class="mono">%dragonreign_owner%</span></td><td>The egg holder's name, or <span class="mono">none</span>.</td></tr>
+                        <tr><td><span class="mono">%dragonreign_reset_in%</span></td><td>Friendly time until the egg next resets, e.g. <span class="mono">5d 3h</span> (or <span class="mono">—</span>).</td></tr>
+                        <tr><td><span class="mono">%dragonreign_reset_seconds%</span></td><td>Raw seconds until reset (for scoreboard math), or -1.</td></tr>
+                        <tr><td><span class="mono">%dragonreign_inactivity_in%</span> · <span class="mono">%dragonreign_staleness_in%</span></td><td>The two reset timers, separately.</td></tr>
+                        <tr><td><span class="mono">%dragonreign_countdown%</span></td><td>Seconds left in an active respawn countdown (0 if none).</td></tr>
+                        <tr><td><span class="mono">%dragonreign_reward_tier%</span></td><td>The owner's current reward tier.</td></tr>
+                        <tr><td><span class="mono">%dragonreign_is_victor%</span> · <span class="mono">%dragonreign_has_owner%</span> · <span class="mono">%dragonreign_countdown_active%</span></td><td>Booleans (<span class="mono">true</span>/<span class="mono">false</span>).</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="docs-callout">Example TAB sidebar lines:<br><span class="mono">'&amp;5✦ &amp;fDragon Egg: %dragonreign_owner%'</span><br><span class="mono">'&amp;5✦ &amp;fResets in: %dragonreign_reset_in%'</span></div>
         </section>
 
         <section class="docs-section" id="faq">
