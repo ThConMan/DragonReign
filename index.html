@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DragonReign — Rule the Dragon Egg</title>
+    <meta name="description" content="DragonReign is a Paper plugin that turns the Dragon Egg into a contested trophy: it can't be hidden in containers, it comes back if its keeper goes inactive, and long-time holders earn the Dragonlord title and aura.">
+    <link rel="icon" href="logo.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dragonreign.css">
+</head>
+<body>
+
+<nav class="nav">
+    <div class="nav-inner">
+        <div class="nav-logo"><a href="index.html" style="color:inherit;">Dragon<span>Reign</span></a></div>
+        <ul class="nav-links" id="nav-links">
+            <li><a href="index.html" class="active">Home</a></li>
+            <li><a href="docs.html">Docs</a></li>
+            <li><a href="https://github.com/ThConMan/DragonReign">GitHub</a></li>
+        </ul>
+        <button class="nav-burger" onclick="toggleMenu()" aria-label="Menu">
+            <span></span><span></span><span></span>
+        </button>
+    </div>
+</nav>
+
+<div style="height: 4rem;"></div>
+
+<!-- Hero -->
+<section class="plugin-hero">
+    <img src="logo.svg" alt="DragonReign" class="plugin-hero-logo">
+    <h1>DragonReign</h1>
+    <p class="tagline">Turn the Dragon Egg into a trophy worth fighting over. It can't be hidden, it can't be hoarded forever, and holding it earns real prestige.</p>
+    <div class="plugin-hero-meta">
+        <span class="hero-badge">Paper 26.1+</span>
+        <span class="hero-badge">Java 21+</span>
+        <span class="hero-badge">Free &amp; open source</span>
+    </div>
+    <div class="hero-buttons">
+        <a href="https://github.com/ThConMan/DragonReign/releases/latest" class="btn btn-primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download
+        </a>
+        <a href="docs.html" class="btn btn-outline">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            Documentation
+        </a>
+        <a href="https://github.com/ThConMan/DragonReign" class="btn btn-outline">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+            GitHub
+        </a>
+    </div>
+</section>
+
+<!-- The idea -->
+<section class="section">
+    <h2 class="section-title">The idea</h2>
+    <p class="section-subtitle">One egg. Everybody wants it. Nobody can cheat to keep it.</p>
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg></div>
+            <h3>No hiding it</h3>
+            <p>The Dragon Egg can only sit in a player's inventory or be placed in the world — never in a chest, ender chest, bundle, hopper, or any container. No stashing it away.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+            <h3>No sitting on it forever</h3>
+            <p>If the keeper goes inactive — or just leaves the egg untouched too long — it respawns at the End portal so everyone gets another shot at it.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+            <h3>Find it nearby</h3>
+            <p>Get within range of a placed egg and an action-bar compass points you to it — warmer as you close in. Vault it in your base, sure, but stumble close and the hunt is on.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4-6.3-4.6L5.7 21.4 8 14 2 9.4h7.6z"/></svg></div>
+            <h3>Earn rewards for holding it</h3>
+            <p>Actively hold the egg and you climb a configurable reward ladder — items, money, XP, anything. Lose the egg and the ladder resets for the next keeper.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg></div>
+            <h3>Can't be AFK-farmed</h3>
+            <p>Rewards and prestige only build while you're really playing. AFK pools, auto-clickers, and walking away are all caught — no free progress for standing still.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a7 7 0 00-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 00-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg></div>
+            <h3>Become a Dragonlord</h3>
+            <p>Hold the egg long enough across the season and you permanently earn the <strong>Dragonlord</strong> title — a gradient name tag in chat, tab, and above your head — plus a glowing aura.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+            <h3>Never lost, never duped</h3>
+            <p>There's always exactly one egg. Throw it in the void and it's rebuilt at the End. Every dupe trick was hunted down and closed.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg></div>
+            <h3>Full history + staff inbox</h3>
+            <p>Every egg event is logged and browsable in-game. Suspicious transfers and cleanups alert your staff — and queue up for whoever's online next.</p>
+        </div>
+    </div>
+</section>
+
+<!-- How it works -->
+<section class="section">
+    <h2 class="section-title">How it plays out</h2>
+    <p class="section-subtitle">A simple loop that keeps the egg in motion.</p>
+    <div class="steps-grid">
+        <div class="step-card">
+            <div class="step-number">1</div>
+            <h3>Claim it</h3>
+            <p>Beat the dragon, grab the egg, or take it off whoever has it. Whoever last placed or picked it up is its keeper.</p>
+        </div>
+        <div class="step-card">
+            <div class="step-number">2</div>
+            <h3>Hold it</h3>
+            <p>Defend it and keep playing. The longer you actively hold it, the bigger your rewards — and the closer you get to Dragonlord.</p>
+        </div>
+        <div class="step-card">
+            <div class="step-number">3</div>
+            <h3>Don't lose it</h3>
+            <p>Wander off or go inactive and a countdown starts — the egg returns to the End for the whole server to fight over again.</p>
+        </div>
+    </div>
+</section>
+
+<!-- Works with -->
+<section class="section">
+    <h2 class="section-title">Plays nice with your stack</h2>
+    <p class="section-subtitle">Soft, optional hooks — DragonReign runs fine on a bare server too.</p>
+    <div class="compat-grid">
+        <div class="compat-item"><div class="compat-name">PlaceholderAPI</div><div class="compat-desc">Publishes the Dragonlord title via <span class="mono">%dragonreign_title%</span>.</div></div>
+        <div class="compat-item"><div class="compat-name">TAB</div><div class="compat-desc">Shows the title in the tab list and above-head nameplate.</div></div>
+        <div class="compat-item"><div class="compat-name">CMI / EssentialsX</div><div class="compat-desc">Uses their AFK status; built-in fallback when neither is present.</div></div>
+        <div class="compat-item"><div class="compat-name">LuckPerms</div><div class="compat-desc">Optional meta/prefix output for permission-based setups.</div></div>
+        <div class="compat-item"><div class="compat-name">Vault</div><div class="compat-desc">Pay money rewards through any economy.</div></div>
+        <div class="compat-item"><div class="compat-name">Chat plugins</div><div class="compat-desc">Optional native chat title for handlers that don't read PlaceholderAPI.</div></div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="section">
+    <div class="cta-card">
+        <h2 class="section-title">Drop it in and go</h2>
+        <p class="section-subtitle">No setup required — sensible defaults out of the box, every rule toggleable in-game.</p>
+        <div class="hero-buttons">
+            <a href="https://github.com/ThConMan/DragonReign/releases/latest" class="btn btn-primary">Download latest</a>
+            <a href="docs.html" class="btn btn-outline">Read the docs</a>
+        </div>
+    </div>
+</section>
+
+<footer class="footer">
+    <div class="footer-inner">
+        <p>DragonReign — a free, open-source Paper plugin by <a href="https://github.com/ThConMan">ThConMan</a>. MIT licensed.</p>
+    </div>
+</footer>
+
+<script>
+function toggleMenu() {
+    document.getElementById('nav-links').classList.toggle('open');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,126 @@
+/* ── DragonReign Theme ── */
+/* Ender-purple palette over the shared framework. */
+
+:root {
+    --bg-primary: #0d0a14;
+    --bg-card: rgba(26, 20, 38, 0.6);
+    --bg-card-solid: #160f24;
+    --border: rgba(64, 48, 92, 0.55);
+    --border-light: rgba(96, 70, 140, 0.9);
+    --glass: rgba(255, 255, 255, 0.03);
+    --text: #efe9f7;
+    --text-muted: #a99bc4;
+    --accent: #9d4edd;
+    --accent-light: #c9a3ff;
+    --accent-glow: rgba(157, 78, 221, 0.22);
+    --accent-glow-strong: rgba(157, 78, 221, 0.45);
+    --blue: #8ab4ff;
+    --purple: #c9a3ff;
+    --red: #f85149;
+}
+
+.nav { border-bottom-color: var(--border); }
+
+.plugin-hero {
+    background: radial-gradient(ellipse 62% 75% at 50% 0%, var(--accent-glow) 0%, transparent 66%);
+}
+.plugin-hero-logo {
+    width: min(260px, 64vw);
+    height: auto;
+    border-radius: 28px;
+    box-shadow: 0 14px 60px rgba(157, 78, 221, 0.30);
+    transition: transform 0.45s ease, box-shadow 0.45s ease;
+}
+.plugin-hero-logo:hover {
+    transform: translateY(-5px) rotate(-1deg);
+    box-shadow: 0 22px 80px rgba(157, 78, 221, 0.42);
+}
+.plugin-hero h1 { color: var(--text); }
+
+.plugin-hero-meta .hero-badge {
+    color: var(--accent-light);
+    background: rgba(157, 78, 221, 0.12);
+    border-color: rgba(157, 78, 221, 0.28);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--accent) 0%, #6a2bb0 100%);
+    color: #fff;
+}
+.btn-primary:hover { box-shadow: 0 6px 28px var(--accent-glow-strong); color: #fff; }
+
+.btn-outline { border-color: var(--border-light); background: rgba(26, 20, 38, 0.5); }
+.btn-outline:hover {
+    border-color: rgba(157, 78, 221, 0.5);
+    color: var(--accent-light);
+    box-shadow: 0 4px 18px var(--accent-glow);
+    background: rgba(157, 78, 221, 0.07);
+}
+
+.feature-icon-wrap {
+    background: rgba(157, 78, 221, 0.10);
+    border-color: rgba(157, 78, 221, 0.18);
+    border-radius: 12px;
+}
+.feature-icon-wrap svg { stroke: var(--accent-light); }
+.feature-card { transition: transform 0.18s ease, border-color 0.2s ease, box-shadow 0.2s ease; }
+.feature-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(157, 78, 221, 0.34);
+    box-shadow: 0 8px 30px rgba(157, 78, 221, 0.12);
+}
+
+.step-number {
+    background: rgba(157, 78, 221, 0.12);
+    border-color: rgba(157, 78, 221, 0.28);
+    color: var(--accent-light);
+}
+.step-card { transition: transform 0.18s ease; }
+.step-card:hover { transform: translateY(-3px); }
+
+.compat-item:hover { border-color: rgba(157, 78, 221, 0.34); }
+
+.cta-card {
+    background: linear-gradient(135deg, rgba(157, 78, 221, 0.13) 0%, rgba(20, 14, 30, 0.55) 60%);
+    border-color: rgba(157, 78, 221, 0.3);
+    box-shadow: 0 0 55px rgba(157, 78, 221, 0.08);
+}
+
+/* Docs */
+.docs-toc a.active {
+    color: var(--accent-light);
+    border-left-color: var(--accent);
+    background: rgba(157, 78, 221, 0.06);
+}
+.docs-title { color: var(--accent-light); }
+.docs-section h2 { border-bottom-color: var(--border); }
+.docs-callout { background: rgba(157, 78, 221, 0.07); border-color: rgba(157, 78, 221, 0.18); }
+.docs-callout-warn { background: rgba(248, 81, 73, 0.06); border-color: rgba(248, 81, 73, 0.2); }
+.docs-tag { background: rgba(138, 180, 255, 0.12); color: var(--blue); }
+.docs-tag-op { background: rgba(248, 81, 73, 0.12); color: var(--red); }
+.docs-grid-item { border-color: var(--border); }
+.docs-grid-item h4 { color: var(--accent-light); }
+.docs-back:hover { color: var(--accent-light); }
+.mono { color: var(--accent-light); }
+
+.footer a { color: var(--accent-light); }
+
+/* Backdrop wash */
+body {
+    background-color: #0a0712;
+    background-image:
+        radial-gradient(ellipse 90% 55% at 50% -8%, rgba(157, 78, 221, 0.18) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 40% at 88% 12%, rgba(157, 78, 221, 0.08) 0%, transparent 55%),
+        radial-gradient(ellipse 60% 50% at 8% 38%, rgba(94, 43, 151, 0.06) 0%, transparent 55%);
+    background-repeat: no-repeat;
+}
+
+/* Crisp bright section headings */
+.section-title {
+    background: none;
+    -webkit-text-fill-color: #f1ecf8;
+    color: #f1ecf8;
+    letter-spacing: -0.02em;
+    font-weight: 800;
+}
+.section-subtitle { text-shadow: none; }

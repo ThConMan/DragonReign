@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DragonReign — Documentation</title>
+    <meta name="description" content="DragonReign documentation: install, the rules, commands, permissions, config, GUIs, and how to show the Dragonlord title in chat, tab, and nameplates.">
+    <link rel="icon" href="logo.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dragonreign.css">
+</head>
+<body>
+
+<nav class="nav">
+    <div class="nav-inner">
+        <div class="nav-logo"><a href="index.html" style="color:inherit;">Dragon<span>Reign</span></a></div>
+        <ul class="nav-links" id="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="docs.html" class="active">Docs</a></li>
+            <li><a href="https://github.com/ThConMan/DragonReign">GitHub</a></li>
+        </ul>
+        <button class="nav-burger" onclick="toggleMenu()" aria-label="Menu"><span></span><span></span><span></span></button>
+    </div>
+</nav>
+
+<div style="height: 4rem;"></div>
+
+<div class="docs-layout">
+    <aside class="docs-sidebar">
+        <div class="docs-sidebar-header">DragonReign Docs</div>
+        <nav class="docs-toc">
+            <a href="#overview" class="active">Overview</a>
+            <a href="#install">Install</a>
+            <a href="#rules">The rules</a>
+            <a href="#commands">Commands</a>
+            <a href="#permissions">Permissions</a>
+            <a href="#config">Config</a>
+            <a href="#guis">In-game menus</a>
+            <a href="#title">Showing the title</a>
+            <a href="#faq">FAQ</a>
+        </nav>
+    </aside>
+
+    <main class="docs-content">
+        <h1 class="docs-title">Documentation</h1>
+        <p class="docs-subtitle">Everything DragonReign does, in plain English. Built for Paper / Minecraft 26.1.2, Java 21+.</p>
+
+        <section class="docs-section" id="overview">
+            <h2>Overview</h2>
+            <p>DragonReign makes the Dragon Egg a single, contested trophy. There's only ever <strong>one</strong> egg. It can't be hidden in containers, it can't be sat on forever, and holding it earns rewards and a permanent <strong>Dragonlord</strong> title. Every rule is on by default and can be flipped in-game with <span class="mono">/dr gui</span>.</p>
+            <div class="docs-callout">All protections apply to <em>every</em> dragon egg item and block — there's no way to launder the rules by crafting a look-alike.</div>
+        </section>
+
+        <section class="docs-section" id="install">
+            <h2>Install</h2>
+            <ol class="docs-list">
+                <li>Download <span class="mono">DragonReign-x.y.z.jar</span> from the <a href="https://github.com/ThConMan/DragonReign/releases/latest">latest release</a>.</li>
+                <li>Drop it in your server's <span class="mono">plugins/</span> folder (remove any older DragonReign jar).</li>
+                <li>Restart the server.</li>
+                <li>Adjust <span class="mono">plugins/DragonReign/config.yml</span> or run <span class="mono">/dr gui</span>. That's it.</li>
+            </ol>
+            <p>Optional soft-depends (all auto-detected): PlaceholderAPI, TAB, LuckPerms, CMI, EssentialsX, Vault.</p>
+        </section>
+
+        <section class="docs-section" id="rules">
+            <h2>The rules</h2>
+            <div class="docs-grid">
+                <div class="docs-grid-item"><h4>No containers</h4><p>The egg can only sit in a player inventory or be placed as a block — never a chest, ender chest, bundle, hopper, minecart, or any container.</p></div>
+                <div class="docs-grid-item"><h4>No drop</h4><p>You can't drop the egg on the ground.</p></div>
+                <div class="docs-grid-item"><h4>Respawn on inactivity</h4><p>If the keeper is gone for <span class="mono">inactivity-days</span> (default 14), the egg respawns at the End portal.</p></div>
+                <div class="docs-grid-item"><h4>Staleness respawn</h4><p>If the egg sits untouched for <span class="mono">staleness-days</span> (default 10) it respawns even while the owner is online — no parking it forever.</p></div>
+                <div class="docs-grid-item"><h4>Respawn countdown</h4><p>The respawn isn't instant: a timed countdown warns the server so players can race to the End. If the keeper returns in time, it's cancelled.</p></div>
+                <div class="docs-grid-item"><h4>Egg compass</h4><p>Players near a placed egg get an action-bar arrow pointing at it — warmer the closer they get.</p></div>
+                <div class="docs-grid-item"><h4>Hold rewards</h4><p>The keeper earns escalating, configurable rewards for actively holding the egg. The ladder resets when the egg changes hands.</p></div>
+                <div class="docs-grid-item"><h4>Anti-AFK</h4><p>Rewards and Dragonlord time only build while you're truly playing. AFK pools and auto-clickers don't count.</p></div>
+                <div class="docs-grid-item"><h4>Void safety</h4><p>An egg that falls into the void is rebuilt at the End — the one egg can never be lost.</p></div>
+                <div class="docs-grid-item"><h4>Dragonlord cosmetics</h4><p>Hold the egg long enough (default 7 days of active time) to permanently earn the Dragonlord title and a glowing aura.</p></div>
+                <div class="docs-grid-item"><h4>Staff inbox</h4><p>Alt/IP flags, dupe cleanups, and respawns alert online admins and queue for the rest.</p></div>
+                <div class="docs-grid-item"><h4>History log</h4><p>Every meaningful egg event is recorded and browsable in-game.</p></div>
+            </div>
+        </section>
+
+        <section class="docs-section" id="commands">
+            <h2>Commands</h2>
+            <p>Base command <span class="mono">/dragonreign</span> — short alias <span class="mono">/dr</span> (also <span class="mono">/dreign</span>, <span class="mono">/degg</span>). Tab-complete only suggests what you can use; running a command without its permission does nothing at all.</p>
+            <div class="docs-table-wrap">
+                <table class="docs-table">
+                    <thead><tr><th>Command</th><th>What it does</th></tr></thead>
+                    <tbody>
+                        <tr><td><span class="mono">/dr info</span></td><td>Who holds the egg + which rules are on. Admins also see exact location and timers.</td></tr>
+                        <tr><td><span class="mono">/dr gui</span></td><td>Open the live settings menu. <span class="docs-tag docs-tag-op">op</span></td></tr>
+                        <tr><td><span class="mono">/dr log</span></td><td>Open the egg history. <span class="docs-tag docs-tag-op">op</span></td></tr>
+                        <tr><td><span class="mono">/dr inbox</span></td><td>Open the staff alert inbox. <span class="docs-tag docs-tag-op">op</span></td></tr>
+                        <tr><td><span class="mono">/dr respawn [force]</span></td><td>Start a respawn countdown now, or <span class="mono">force</span> it instantly. <span class="docs-tag docs-tag-op">op</span></td></tr>
+                        <tr><td><span class="mono">/dr cancel</span></td><td>Cancel an active countdown. <span class="docs-tag docs-tag-op">op</span></td></tr>
+                        <tr><td><span class="mono">/dr victor &lt;grant|revoke&gt; &lt;player&gt;</span></td><td>Grant or take away Dragonlord status. <span class="docs-tag docs-tag-op">op</span></td></tr>
+                        <tr><td><span class="mono">/dr cosmetics</span> · <span class="mono">/dr particle</span> · <span class="mono">/dr title</span></td><td>Dragonlords toggle their own aura and title.</td></tr>
+                        <tr><td><span class="mono">/dr reload</span></td><td>Reload the config. <span class="docs-tag docs-tag-op">op</span></td></tr>
+                        <tr><td><span class="mono">/giveegg &lt;player&gt;</span></td><td>Hand the egg you're holding to another online player.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="docs-section" id="permissions">
+            <h2>Permissions</h2>
+            <p>Every action has its own node, all rolled up under <span class="mono">dragonreign.admin</span>. Hand out one capability at a time with LuckPerms, or grant the parent for full admin.</p>
+            <div class="docs-table-wrap">
+                <table class="docs-table">
+                    <thead><tr><th>Node</th><th>Default</th><th>Grants</th></tr></thead>
+                    <tbody>
+                        <tr><td><span class="mono">dragonreign.bypass</span></td><td>op</td><td>Ignores all protections.</td></tr>
+                        <tr><td><span class="mono">dragonreign.giveegg</span></td><td>everyone</td><td><span class="mono">/giveegg</span>.</td></tr>
+                        <tr><td><span class="mono">dragonreign.command.info</span></td><td>everyone</td><td><span class="mono">/dr info</span>.</td></tr>
+                        <tr><td><span class="mono">dragonreign.command.gui</span></td><td>op</td><td>The settings menu.</td></tr>
+                        <tr><td><span class="mono">dragonreign.command.history</span></td><td>op</td><td>The history menu.</td></tr>
+                        <tr><td><span class="mono">dragonreign.command.inbox</span></td><td>op</td><td>The staff inbox.</td></tr>
+                        <tr><td><span class="mono">dragonreign.command.respawn</span></td><td>op</td><td>Respawn / force respawn.</td></tr>
+                        <tr><td><span class="mono">dragonreign.command.cancel</span></td><td>op</td><td>Cancel a countdown.</td></tr>
+                        <tr><td><span class="mono">dragonreign.command.victor</span></td><td>op</td><td>Grant/revoke Dragonlord.</td></tr>
+                        <tr><td><span class="mono">dragonreign.command.reload</span></td><td>op</td><td>Reload the config.</td></tr>
+                        <tr><td><span class="mono">dragonreign.victor</span></td><td>false</td><td>Marks a Dragonlord (auto-granted at the time threshold).</td></tr>
+                        <tr><td><span class="mono">dragonreign.admin</span></td><td>op</td><td>All of the above admin nodes.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="docs-section" id="config">
+            <h2>Config</h2>
+            <p>The whole <span class="mono">config.yml</span> is commented in plain language, and most of it is editable live from <span class="mono">/dr gui</span>. The key knobs:</p>
+            <pre class="docs-code">respawn-on-inactivity:
+  inactivity-days: 14      # keeper gone this long -> egg respawns
+  staleness-days: 10       # egg untouched this long -> respawns anyway
+
+rewards:
+  interval-minutes: 60     # active holding time per reward tier
+  tiers:                   # each tier = console commands ({player}, {tier})
+    - ["give %player% diamond 4"]
+    - ["give %player% diamond 8", "xp add %player% 30 levels"]
+
+victor:
+  threshold-hours: 168     # active hold time to become a Dragonlord (7 days)
+  title: "&amp;6Dragonlord"    # the title (a rendered gradient by default)
+  particle: PORTAL         # the aura (the purple enderman swirl)
+
+chat:
+  enabled: false           # turn on if your chat plugin doesn't show the title</pre>
+        </section>
+
+        <section class="docs-section" id="guis">
+            <h2>In-game menus</h2>
+            <ul class="docs-list">
+                <li><strong>Settings</strong> (<span class="mono">/dr gui</span>) — flip every rule on/off, set the inactivity/staleness days, cycle the announcement sound, jump to the placed egg, and open the other menus.</li>
+                <li><strong>History</strong> (<span class="mono">/dr log</span>) — newest-first list of every egg event, with who, where, and when.</li>
+                <li><strong>Inbox</strong> (<span class="mono">/dr inbox</span>) — staff alerts; click to mark read, shift-click to dismiss.</li>
+            </ul>
+        </section>
+
+        <section class="docs-section" id="title">
+            <h2>Showing the Dragonlord title</h2>
+            <p>The title is published through PlaceholderAPI as <span class="mono">%dragonreign_title%</span>, so any plugin that reads PlaceholderAPI can display it. Put that placeholder right after the rank prefix, before the name.</p>
+            <ul class="docs-list">
+                <li><strong>TAB</strong> — add <span class="mono">%dragonreign_title%</span> to each group's <span class="mono">tabprefix</span> (tab list) and <span class="mono">tagprefix</span> (above-head nameplate) in <span class="mono">TAB/groups.yml</span>.</li>
+                <li><strong>Most chat / nameplate plugins</strong> — drop <span class="mono">%dragonreign_title%</span> into their name format.</li>
+            </ul>
+            <div class="docs-callout docs-callout-warn">Some chat handlers (notably <strong>CMI's display name</strong>) don't expand external PlaceholderAPI placeholders. For those, set <span class="mono">chat.enabled: true</span> and DragonReign adds the title to a victor's chat line itself.</div>
+        </section>
+
+        <section class="docs-section" id="faq">
+            <h2>FAQ</h2>
+            <div class="docs-grid">
+                <div class="docs-grid-item"><h4>Can the egg ever be lost or duped?</h4><p>No. There's always exactly one egg; void drops are rebuilt at the End, and the dupe/exploit paths are closed.</p></div>
+                <div class="docs-grid-item"><h4>Does it lag the server?</h4><p>No. Everything keys off a single egg with interval-based checks — no per-tick scans.</p></div>
+                <div class="docs-grid-item"><h4>Do I need PlaceholderAPI / TAB / CMI?</h4><p>No. They're optional hooks. DragonReign runs fine on a bare server.</p></div>
+                <div class="docs-grid-item"><h4>How do I test it as an admin?</h4><p>Ops bypass protections, so test from a non-op alt or use <span class="mono">/dr victor grant</span> and <span class="mono">/dr respawn force</span>.</p></div>
+            </div>
+        </section>
+
+        <a href="index.html" class="docs-back">&larr; Back to home</a>
+    </main>
+</div>
+
+<footer class="footer">
+    <div class="footer-inner">
+        <p>DragonReign — a free, open-source Paper plugin by <a href="https://github.com/ThConMan">ThConMan</a>. MIT licensed.</p>
+    </div>
+</footer>
+
+<script>
+function toggleMenu() { document.getElementById('nav-links').classList.toggle('open'); }
+// Highlight the current section in the sidebar.
+const links = [...document.querySelectorAll('.docs-toc a')];
+const sections = links.map(a => document.querySelector(a.getAttribute('href')));
+window.addEventListener('scroll', () => {
+    let i = sections.findIndex((s, n) => s && s.getBoundingClientRect().top > 90 && (n === 0 || sections[n-1].getBoundingClientRect().top <= 90));
+    const active = i === -1 ? links.length - 1 : Math.max(0, i - 1);
+    links.forEach((a, n) => a.classList.toggle('active', n === active));
+});
+</script>
+</body>
+</html>

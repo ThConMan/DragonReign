@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" width="320" height="320" role="img" aria-label="DragonReign">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="34%" r="75%">
+      <stop offset="0%" stop-color="#2a1248"/>
+      <stop offset="55%" stop-color="#150a26"/>
+      <stop offset="100%" stop-color="#0a0612"/>
+    </radialGradient>
+    <linearGradient id="egg" x1="32%" y1="6%" x2="70%" y2="100%">
+      <stop offset="0%" stop-color="#F3ECFF"/>
+      <stop offset="26%" stop-color="#C9A3FF"/>
+      <stop offset="60%" stop-color="#9D4EDD"/>
+      <stop offset="100%" stop-color="#5E2B97"/>
+    </linearGradient>
+    <linearGradient id="crack" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#E8D9FF"/>
+    </linearGradient>
+    <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="6" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <clipPath id="eggclip">
+      <path d="M160 50 C190 50 223 108 227 172 C231 232 200 282 160 282 C120 282 89 232 93 172 C97 108 130 50 160 50 Z"/>
+    </clipPath>
+  </defs>
+
+  <!-- backdrop -->
+  <rect width="320" height="320" rx="64" fill="url(#bg)"/>
+  <ellipse cx="160" cy="150" rx="120" ry="135" fill="#9D4EDD" opacity="0.16" filter="url(#glow)"/>
+
+  <!-- egg body -->
+  <path d="M160 50 C190 50 223 108 227 172 C231 232 200 282 160 282 C120 282 89 232 93 172 C97 108 130 50 160 50 Z"
+        fill="url(#egg)" stroke="#E8D9FF" stroke-opacity="0.35" stroke-width="2"/>
+
+  <!-- scales + shading, clipped to the egg -->
+  <g clip-path="url(#eggclip)">
+    <!-- soft side shading for volume -->
+    <ellipse cx="120" cy="160" rx="70" ry="120" fill="#FFFFFF" opacity="0.10"/>
+    <ellipse cx="205" cy="200" rx="80" ry="120" fill="#3a1466" opacity="0.30"/>
+    <!-- scale rows -->
+    <g fill="none" stroke="#3a1466" stroke-opacity="0.45" stroke-width="3">
+      <path d="M90 110 q22 22 44 0 q22 22 44 0 q22 22 44 0"/>
+      <path d="M78 150 q24 24 48 0 q24 24 48 0 q24 24 48 0"/>
+      <path d="M74 192 q26 26 52 0 q26 26 52 0 q26 26 52 0"/>
+      <path d="M80 234 q24 24 48 0 q24 24 48 0 q24 24 48 0"/>
+    </g>
+    <g fill="none" stroke="#F3ECFF" stroke-opacity="0.22" stroke-width="1.5">
+      <path d="M90 108 q22 22 44 0 q22 22 44 0 q22 22 44 0"/>
+      <path d="M78 148 q24 24 48 0 q24 24 48 0 q24 24 48 0"/>
+      <path d="M74 190 q26 26 52 0 q26 26 52 0 q26 26 52 0"/>
+    </g>
+  </g>
+
+  <!-- glowing crack -->
+  <g filter="url(#glow)">
+    <path d="M162 70 L150 120 L168 150 L150 188 L170 226 L156 268"
+          fill="none" stroke="url(#crack)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- top highlight -->
+  <ellipse cx="138" cy="96" rx="20" ry="30" fill="#FFFFFF" opacity="0.35"/>
+</svg>
