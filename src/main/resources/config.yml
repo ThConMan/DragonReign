@@ -156,6 +156,16 @@ victor:
   # LuckPerms-based prefixes can use it. Off by default so it won't touch existing prefixes.
   luckperms-meta: false    # default: false
 
+# ── Chat title ─────────────────────────────────────────────────────────────
+# Some chat handlers (e.g. CMI's display name) don't expand the %dragonreign_title%
+# placeholder. Turn this on and DragonReign adds the Dragonlord title to a victor's chat
+# line itself. Only victors with their title on are affected — everyone else's chat is
+# left exactly as your chat plugin formats it. {title} = the title, {name} = the player's
+# name; %...% are PlaceholderAPI placeholders (e.g. the LuckPerms prefix).
+chat:
+  enabled: false           # default: false. turn on if your chat plugin doesn't show the title
+  format: "%luckperms_prefix%{title} {name}%luckperms_suffix%&8: &f"
+
 # ── Bookkeeping ────────────────────────────────────────────────────────────
 history:
   max-entries: 1000        # default: 1000

@@ -20,5 +20,5 @@ rm -rf build/classes && mkdir -p build/classes
 find src/main/java -name '*.java' > build/sources.txt
 javac --release 21 -cp "$CP" -d build/classes @build/sources.txt
 cp -r src/main/resources/* build/classes/ 2>/dev/null || true
-(cd build/classes && jar cf ../DragonReign-1.2.1.jar .)
-echo "BUILD OK -> build/DragonReign-1.2.1.jar"
+(cd build/classes && jar cf ../DragonReign-1.2.2.jar .)
+echo "BUILD OK -> build/DragonReign-1.2.2.jar"

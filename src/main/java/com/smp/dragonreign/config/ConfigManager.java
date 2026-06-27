@@ -454,6 +454,14 @@ public final class ConfigManager {
         return cfg().getString("victor.title", "&6Dragonlord");
     }
 
+    public boolean isChatEnabled() {
+        return cfg().getBoolean("chat.enabled", false);
+    }
+
+    public String getChatFormat() {
+        return cfg().getString("chat.format", "%luckperms_prefix%{title} {name}%luckperms_suffix%&8: &f");
+    }
+
     public boolean isVictorTitleEnabled() {
         return cfg().getBoolean("victor.title-enabled", true);
     }
