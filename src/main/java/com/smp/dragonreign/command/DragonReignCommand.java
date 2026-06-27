@@ -130,13 +130,15 @@ public final class DragonReignCommand implements TabExecutor {
                 player.sendMessage(Msg.prefixed(config.getPrefix(), "<green>The Dragon Egg guide is in your inventory.</green>"));
             }
             case "info" -> showInfo(sender);
+            case "admininfo", "ainfo", "status" -> showAdminInfo(sender);
             default -> {
                 // Only hint at the syntax for someone who could use it; everyone else gets nothing.
                 if (sender.hasPermission(Perms.ADMIN)) {
                     sender.sendMessage(Msg.prefixed(config.getPrefix(),
                             "<red>Unknown subcommand. Try <white>gui</white>, <white>log</white>, <white>inbox</white>, "
                                     + "<white>respawn</white>, <white>cancel</white>, <white>reload</white>, "
-                                    + "<white>victor</white>, <white>cosmetics</white>, or <white>info</white>.</red>"));
+                                    + "<white>victor</white>, <white>cosmetics</white>, <white>info</white>, "
+                                    + "or <white>admininfo</white>.</red>"));
                 } else if (sender.hasPermission(Perms.COSMETICS)) {
                     sender.sendMessage(Msg.prefixed(config.getPrefix(),
                             "<red>Unknown subcommand. Try <white>cosmetics</white>, <white>particle</white>, "
@@ -214,37 +216,69 @@ public final class DragonReignCommand implements TabExecutor {
         if (!sender.hasPermission(Perms.INFO)) {
             return; // silent
         }
-        sendInfo(sender);
+        sendPlayerInfo(sender);
     }
 
-    private void sendInfo(CommandSender sender) {
+    private void showAdminInfo(CommandSender sender) {
+        if (!sender.hasPermission(Perms.ADMININFO)) {
+            return; // silent
+        }
+        sendAdminInfo(sender);
+    }
+
+    /**
+     * The friendly, player-facing readout: who holds the egg, whether there's a respawn race
+     * on, and a nudge to the guide. No coordinates, no config jargon — the egg's location stays
+     * secret on purpose (the whole point is to physically contest it).
+     */
+    private void sendPlayerInfo(CommandSender sender) {
         ConfigManager c = plugin.config();
-        boolean admin = sender.hasPermission(Perms.ADMIN);
+        UUID owner = plugin.store().getOwner();
+        sender.sendMessage(Msg.prefixed(c.getPrefix(), "<dark_purple>— The Dragon Egg —</dark_purple>"));
+        if (owner == null) {
+            sender.sendMessage(Msg.mm("<gray>No one holds the egg right now — it's out there, "
+                    + "waiting to be claimed.</gray>"));
+        } else {
+            boolean lord = plugin.victors().isVictor(owner);
+            sender.sendMessage(Msg.mm("<gray>The egg belongs to <white>" + Players.name(owner) + "</white>"
+                    + (lord ? " <dark_purple>— a Dragonlord</dark_purple>" : "") + ".</gray>"));
+            long reset = plugin.resetRemainingMillis();
+            if (reset >= 0) {
+                sender.sendMessage(Msg.mm("<gray>If left alone, it resets at the End in <white>"
+                        + com.smp.dragonreign.util.Times.human(reset)
+                        + "</white> — stay active to keep it.</gray>"));
+            }
+        }
+        if (plugin.countdown().secondsLeft() > 0) {
+            sender.sendMessage(Msg.mm("<gold>The egg respawns at the End in <white>"
+                    + plugin.countdown().secondsLeft() + "s</white> — race there!</gold>"));
+        }
+        sender.sendMessage(Msg.mm("<dark_gray>Read <white>/dr guide</white> to learn how it works.</dark_gray>"));
+    }
+
+    /** The technical staff readout: owner, rules, exact location, timers, ownership posture, inbox. */
+    private void sendAdminInfo(CommandSender sender) {
+        ConfigManager c = plugin.config();
         UUID owner = plugin.store().getOwner();
         String ownerName = owner == null ? "none (unclaimed)" : Players.name(owner);
 
-        // ── Public view: who holds it and which rules are on. No coordinates, no
-        //    staff-facing detail. On an SMP whose premise is the egg must be physically
-        //    contested, broadcasting the keeper's base location to everyone defeats it.
-        sender.sendMessage(Msg.prefixed(c.getPrefix(), "<dark_purple>— Dragon Egg —</dark_purple>"));
+        sender.sendMessage(Msg.prefixed(c.getPrefix(), "<dark_purple>— Dragon Egg (admin) —</dark_purple>"));
         sender.sendMessage(Msg.mm("<gray>Owner: <white>" + ownerName + "</white></gray>"));
         sender.sendMessage(Msg.mm("<gray>Rules — containers: " + onOff(c.isNoContainers())
                 + "<gray>, drop: " + onOff(c.isNoDrop())
                 + "<gray>, sweep: " + onOff(c.isEnderSweepEnabled())
                 + "<gray>, respawn: " + onOff(c.isRespawnEnabled())
                 + "<gray>, announce: " + onOff(c.isAnnounceEnabled()) + "</gray>"));
-        // Countdown is a server-wide, already-broadcast event, so it's fine for everyone.
         sender.sendMessage(Msg.mm("<gray>Countdown: <white>" + plugin.countdown().statusText() + "</white></gray>"));
 
-        if (!admin) {
-            return;
-        }
-
-        // ── Admin-only: exact location, timers, strict-ownership posture, inbox count.
         EggLocation loc = plugin.store().getLocation();
         sender.sendMessage(Msg.mm("<gray>Placed at: <white>" + (loc != null ? loc.compact() : "not placed (held or gone)") + "</white></gray>"));
         sender.sendMessage(Msg.mm("<gray>Inactivity: <white>" + c.getInactivityDays() + "d</white>"
                 + "<gray>, sound: <white>" + c.getSoundMode().name() + "</white></gray>"));
+        sender.sendMessage(Msg.mm("<gray>Resets in — inactivity: <white>"
+                + com.smp.dragonreign.util.Times.human(plugin.inactivityRemainingMillis())
+                + "</white><gray>, staleness: <white>"
+                + com.smp.dragonreign.util.Times.human(plugin.stalenessRemainingMillis()) + "</white></gray>"));
         sender.sendMessage(Msg.mm("<gray>Last activity: <white>" + STAMP.format(
                 java.time.Instant.ofEpochMilli(plugin.store().getLastActivity())) + "</white></gray>"));
         String strict;
@@ -274,6 +308,7 @@ public final class DragonReignCommand implements TabExecutor {
             // Only suggest what the sender can actually run — no probing the command's shape.
             List<String> subs = new ArrayList<>();
             if (sender.hasPermission(Perms.INFO)) subs.add("info");
+            if (sender.hasPermission(Perms.ADMININFO)) subs.add("admininfo");
             if (sender.hasPermission(Perms.GUIDE)) subs.add("guide");
             if (sender.hasPermission(Perms.GUI)) subs.add("gui");
             if (sender.hasPermission(Perms.HISTORY)) {

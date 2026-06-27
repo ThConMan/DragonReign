@@ -441,7 +441,14 @@ public final class ConfigManager {
     public int getVoidCheckTicks() {
         // Clamped to at most 1s: a loose egg falls at terminal velocity, so a wider check
         // window could let it cross the void-kill plane between checks and be lost for good.
-        return Math.min(20, Math.max(1, cfg().getInt("void-safety.check-ticks", 20)));
+        // Default is low so lava/water buoyancy stays smooth (it rides the same check).
+        return Math.min(20, Math.max(1, cfg().getInt("void-safety.check-ticks", 4)));
+    }
+
+    public boolean isEggFireproof() {
+        // Make a loose (dropped/falling) egg invulnerable so lava, fire, cactus and explosions
+        // can't destroy the one unique egg. The placed block and inventory forms are unaffected.
+        return cfg().getBoolean("void-safety.fireproof", true);
     }
 
     // ── Victor prestige cosmetics (v1.2) ──────────────────────────────────────
@@ -459,7 +466,9 @@ public final class ConfigManager {
     }
 
     public String getChatFormat() {
-        return cfg().getString("chat.format", "%luckperms_prefix%{title} {name}%luckperms_suffix%&8: &f");
+        // &r&f&l before {name} stops the title's gradient from colouring the name — it
+        // stays bold white. A colour code in the suffix resets the bold again afterwards.
+        return cfg().getString("chat.format", "%luckperms_prefix%{title} &r&f&l{name}%luckperms_suffix%&8: &f");
     }
 
     public boolean isVictorTitleEnabled() {
@@ -481,15 +490,123 @@ public final class ConfigManager {
     }
 
     public String getVictorParticle() {
-        return cfg().getString("victor.particle", "PORTAL");
+        // DUST_COLOR_TRANSITION holds a TIGHT knot (the motes stay put) and shimmers colour —
+        // so the spirits read as little balls. PORTAL flies outward and only ever makes a cloud,
+        // so it's not the default. PORTAL/DUST are still selectable.
+        return cfg().getString("victor.particle", "DUST_COLOR_TRANSITION");
+    }
+
+    public String getVictorAuraColor() {
+        return cfg().getString("victor.aura-color", "#9D4EDD"); // ender purple (gradient start)
+    }
+
+    public String getVictorAuraColor2() {
+        return cfg().getString("victor.aura-color-2", "#4ED9FF"); // spectral cyan (gradient end)
+    }
+
+    public double getVictorSpiritSize() {
+        return Math.max(0.2, cfg().getDouble("victor.spirit-size", 0.45));
+    }
+
+    public double getVictorAuraSize() {
+        return Math.max(0.2, cfg().getDouble("victor.aura-size", 0.6));
+    }
+
+    public String getVictorParticleMotion() {
+        // How PORTAL (non-DUST) motes drift: still | inward | outward | up | swirl. Live-tunable.
+        return cfg().getString("victor.particle-motion", "still");
+    }
+
+    public double getVictorParticleMotionSpeed() {
+        return Math.max(0.0, cfg().getDouble("victor.particle-motion-speed", 0.5));
+    }
+
+    public double getVictorViewClearRadius() {
+        // How wide a column around the player stays particle-free at face height. Bigger =
+        // clearer first-person view but less aura hugging the player. Live-tunable.
+        return Math.max(0.0, cfg().getDouble("victor.view-clear-radius", 2.4));
     }
 
     public int getVictorParticleDensity() {
-        return Math.max(1, cfg().getInt("victor.particle-density", 12));
+        return Math.max(1, cfg().getInt("victor.particle-density", 5));
+    }
+
+    public boolean isVictorWingsEnabled() {
+        return cfg().getBoolean("victor.wings-enabled", false);
+    }
+
+    public boolean isVictorVortexEnabled() {
+        return cfg().getBoolean("victor.vortex-enabled", false);
+    }
+
+    public boolean isVictorGroundEnabled() {
+        return cfg().getBoolean("victor.ground-enabled", false);
+    }
+
+    public boolean isVictorOrbitEnabled() {
+        return cfg().getBoolean("victor.orbit-enabled", true);
+    }
+
+    public int getVictorOrbitCount() {
+        // Number of wandering spirit-wisps; capped so a huge value can't lag the server.
+        return Math.max(0, Math.min(24, cfg().getInt("victor.orbit-count", 7)));
     }
 
     public int getVictorParticleIntervalTicks() {
-        return Math.max(1, cfg().getInt("victor.particle-interval-ticks", 40));
+        // Low (every 2 ticks) so the spirits flow smoothly instead of jumping/pulsing. The
+        // per-emission counts/density are scaled down to keep the on-screen thickness sane.
+        return Math.max(1, cfg().getInt("victor.particle-interval-ticks", 2));
+    }
+
+    public boolean isVictorEmberEnabled() {
+        return cfg().getBoolean("victor.ember-enabled", true);
+    }
+
+    public String getVictorEmberParticle() {
+        return cfg().getString("victor.ember-particle", "SOUL_FIRE_FLAME");
+    }
+
+    public String getVictorEmberParticle2() {
+        // Second fire type, randomly mixed with ember-particle so blue + red fire blend.
+        return cfg().getString("victor.ember-particle-2", "FLAME");
+    }
+
+    public double getVictorLivewireIntensity() {
+        // 0 = calm (no surges); 1 = default crackle; higher = more violent. Live-tunable.
+        return Math.max(0.0, Math.min(3.0, cfg().getDouble("victor.livewire-intensity", 1.0)));
+    }
+
+    public boolean isVictorCombatReactive() {
+        return cfg().getBoolean("victor.combat-reactivity", true);
+    }
+
+    public boolean isVictorArcsEnabled() {
+        return cfg().getBoolean("victor.arcs-enabled", true);
+    }
+
+    public boolean isVictorCoronationEnabled() {
+        return cfg().getBoolean("victor.coronation-enabled", true);
+    }
+
+    public boolean isVictorSurgeSound() {
+        return cfg().getBoolean("victor.surge-sound", false);
+    }
+
+    public int getVictorEmberCount() {
+        return Math.max(0, cfg().getInt("victor.ember-count", 2));
+    }
+
+    public boolean isVictorHitEnabled() {
+        return cfg().getBoolean("victor.hit-enabled", true);
+    }
+
+    public String getVictorHitParticle() {
+        return cfg().getString("victor.hit-particle", "PORTAL");
+    }
+
+    public int getVictorHitCount() {
+        // Kept small on purpose: this fires on every landed hit, so lag matters more than size.
+        return Math.max(1, cfg().getInt("victor.hit-count", 10));
     }
 
     public boolean isVictorLuckPermsMeta() {

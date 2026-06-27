@@ -58,6 +58,11 @@ public final class VoidGuardian implements Listener {
         Item item = event.getEntity();
         if (Egg.isDragonEgg(item.getItemStack())) {
             item.setUnlimitedLifetime(true); // the unique egg must never despawn on the ground
+            if (plugin.config().isEggFireproof()) {
+                // Immune to fire, lava, cactus and explosions — the one egg can't be destroyed.
+                // (The void still removes it by position below, so a void drop still recovers.)
+                item.setInvulnerable(true);
+            }
             tracked = item;
         }
     }
@@ -99,6 +104,16 @@ public final class VoidGuardian implements Listener {
         if (!tracked.isValid() || tracked.isDead()) {
             tracked = null;
             return;
+        }
+        // The egg refuses to stay in lava or water — buoy it back toward the surface. Combined
+        // with its fire-immunity, a loose egg that lands in lava floats out instead of burning.
+        if (tracked instanceof Item) {
+            Material in = tracked.getLocation().getBlock().getType();
+            if (in == Material.LAVA || in == Material.WATER) {
+                org.bukkit.util.Vector v = tracked.getVelocity();
+                tracked.setVelocity(new org.bukkit.util.Vector(v.getX() * 0.4,
+                        Math.max(v.getY(), 0.28), v.getZ() * 0.4));
+            }
         }
         World world = tracked.getWorld();
         if (tracked.getLocation().getY() < world.getMinHeight() + DANGER_BUFFER) {

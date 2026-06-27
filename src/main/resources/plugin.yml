@@ -1,5 +1,5 @@
 name: DragonReign
-version: 1.3.0
+version: 1.3.1
 main: com.smp.dragonreign.DragonReign
 api-version: '1.21'
 author: ThConMan
@@ -25,8 +25,11 @@ permissions:
     description: Allows use of /giveegg.
     default: true
   dragonreign.command.info:
-    description: View /dr info (the public egg readout).
+    description: View /dr info (the friendly player egg readout).
     default: true
+  dragonreign.command.admininfo:
+    description: View /dr admininfo (the technical staff egg readout).
+    default: op
   dragonreign.command.gui:
     description: Open the config GUI.
     default: op
@@ -57,14 +60,18 @@ permissions:
   dragonreign.command.guide:
     description: Get the in-game Dragon Egg guide book (/dr guide).
     default: true
-  dragonreign.victor:
-    description: Marks a player as a Dragonlord. Granted automatically at the hold-time threshold.
-    default: false
+  # dragonreign.victor (the Dragonlord marker) is DELIBERATELY not registered here.
+  # LuckPerms only expands wildcards (* and dragonreign.*) over permissions a plugin
+  # registers, so leaving this node unregistered keeps a staff member's '*' or an
+  # admin's broad grant from silently turning them into a Dragonlord. The node still
+  # works when assigned explicitly (lp user <name> permission set dragonreign.victor
+  # true) and is still granted by the earned hold-time threshold or /dr victor grant.
   dragonreign.admin:
     description: Grants every DragonReign admin permission (the command.* and gui.* nodes).
     default: op
     children:
       dragonreign.command.info: true
+      dragonreign.command.admininfo: true
       dragonreign.command.gui: true
       dragonreign.command.history: true
       dragonreign.command.inbox: true
