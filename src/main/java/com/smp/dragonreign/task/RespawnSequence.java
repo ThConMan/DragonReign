@@ -134,6 +134,35 @@ public final class RespawnSequence {
         plugin.saveAsync();
     }
 
+    /**
+     * Bring the egg back to the End fountain after it was lost in a loose form (fell into
+     * the void). Unlike {@link #run}, this skips the "keeper vanished" fanfare and the
+     * stray-egg sweep — neither fits a void rescue. The caller has already removed the
+     * lost entity. Returns false (and leaves tracking untouched) if the End is unavailable.
+     */
+    public boolean recoverToPortal(String reason) {
+        EggDataStore store = plugin.store();
+        Optional<EggLocation> spawned = plugin.spawner().spawnAtExitPortal();
+        if (spawned.isEmpty()) {
+            plugin.getLogger().warning("Void recovery deferred: End world unavailable.");
+            return false;
+        }
+        plugin.history().appendSystem(EventType.EGG_SPAWNED, spawned.get(),
+                "fresh egg on the End fountain (void recovery)");
+
+        store.setOwner(null, "void recovery");
+        store.setLocation(spawned.get());
+        store.touchActivity();
+
+        plugin.history().appendSystem(EventType.EGG_RECOVERED, spawned.get(),
+                "the egg fell into the void and was returned to the End (" + reason + ")");
+        plugin.inbox().post(Severity.CRITICAL, "Egg recovered from the void",
+                "The Dragon Egg fell into the void and was returned to the End fountain ("
+                        + reason + ").", (UUID[]) null);
+        plugin.saveAsync();
+        return true;
+    }
+
     private void eraseTrackedBlock(EggLocation loc) {
         if (loc == null) {
             return;

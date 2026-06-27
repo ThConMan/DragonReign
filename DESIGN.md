@@ -613,3 +613,278 @@ matching; never share it."
 - **No raw IPs, ever.** `getAddress()` can be null (offline/edge) → skip recording gracefully.
 - **Enforcement is opt-in.** `auto-enforce-ip-links` defaults false; group-aware last-seen is the
   always-on, low-false-positive half of the protection.
+
+---
+
+## 9. v1.2.0 additions — proximity compass, staleness respawn, hold rewards, AFK accounting, void safety, victor cosmetics
+
+v1.2.0 layers six features onto the existing wiring without rewriting it. The rule stays
+the same: protection/tracking logic is untouched; the new code hooks the decision points
+that already exist (the inactivity check, the owner-change moment, the join/spawn events)
+and reuses `EggDataStore`, `HistoryLog`, `AnnouncementService`, `CountdownManager`,
+`RespawnSequence`, `EndPortalEggSpawner`, the GUI infra, and the existing async
+order-preserving writer. Everything keys off the one egg. No protection branch is
+duplicated, and no feature scans the world per tick.
+
+### 9.1 New sub-packages / classes
+
+| Class | Package | Role |
+|-------|---------|------|
+| `CompassTask` | `.task` | Repeating action-bar pointer toward the placed egg, only for nearby players. Early-returns when nothing is placed. |
+| `HoldTimeTask` | `.task` | The single accrual ticker. Once per accrual tick it works out the owner's active (non-AFK, online) time delta and feeds both `RewardManager` and `VictorManager`. The one place "active held time" is measured. |
+| `RewardManager` | `.reward` | Escalating hold reward: tracks progress toward the next tier, runs the tier's console commands at each interval, bumps the tier, and privately notifies the holder. |
+| `VictorManager` | `.victor` | Lifetime active-hold totals, the permanent victor set, and per-player cosmetic toggles. Owns its own file (`victors.yml`). Grants victor status at the threshold; admin grant/revoke. |
+| `ParticleTask` | `.task` | Interval particle aura around online victors who have the aura turned on. Early-returns when no victors are online. |
+| `VoidGuardian` | `.task` | `Listener` + light timer. Tracks the egg only in its loose forms (dropped item, falling block) and rescues it back to the End if it crosses into the void. |
+| `AfkCheck` | `.afk` | Reflection-only AFK detection (CMI then EssentialsX then a built-in position sampler), with cached method handles. Never throws if a plugin is absent. |
+| `DragonReignExpansion` | `.papi` | PlaceholderAPI expansion exposing `%dragonreign_title%`, `%dragonreign_is_victor%`, `%dragonreign_reward_tier%`. Registered only when PlaceholderAPI is enabled. |
+| `LuckPermsHook` | `.hook` | Optional soft LuckPerms meta writer (`dragonreign-title`), guarded by plugin-enabled plus a config toggle (off by default). |
+| `CosmeticsGui` | `.gui` | Small player-facing menu for victors to toggle their aura and title. New `GuiHolder.Type.COSMETICS`. |
+
+No new protection listeners. `VoidGuardian` is the only new `Listener` (egg-entity spawn /
+falling-block landing). All other features ride existing hooks.
+
+### 9.2 Shared active-time / AFK accounting (drives rewards AND victor)
+
+Rewards and victor prestige both consume the same "active held time" figure, so it is
+measured in exactly one place: `HoldTimeTask`, a repeating task on a coarse interval
+(`hold-time.accrual-ticks`, default 100 = 5s; granularity only, not correctness).
+
+Each tick:
+1. `owner = store.getOwner()`. If `null`, reset `lastAccrualStamp`/`lastOwner` and return
+   (an unowned egg on the fountain accrues nothing).
+2. If `owner` changed since last tick, reset `lastAccrualStamp` to now, reset the built-in
+   AFK sampler's tracked block, and return (do not credit time across a hand-off).
+3. `Player p = Bukkit.getPlayer(owner)`. If offline, advance `lastAccrualStamp = now` and
+   return (offline time is never active time).
+4. `delta = now - lastAccrualStamp; lastAccrualStamp = now`.
+5. If `AfkCheck.isAfk(p)`, return without crediting `delta` (the AFK gap is discarded).
+6. Otherwise credit `delta` to both `RewardManager.addActive(owner, delta)` and
+   `VictorManager.addActive(owner, delta)`.
+
+Using a wall-clock delta means a lag spike or a longer interval cannot over- or under-count.
+
+`AfkCheck.isAfk(Player)` detection order, each wrapped in try/catch, method handles cached
+on first success, returns "active" if a detector is unavailable:
+- CMI: `com.Zrips.CMI.CMI.getInstance().getPlayerManager().getUser(player).isAfk()`.
+- EssentialsX: `getPlugin("Essentials")` then `essentials.getUser(player).isAfk()`.
+- Built-in fallback: sample the owner's block position once per accrual tick (no
+  `PlayerMoveEvent`). Store the last block and the millis it last changed; report AFK once
+  `now - lastMoveMillis >= afk.idle-seconds * 1000`. State is single-owner (one egg) and is
+  cleared on owner change. When `afk.enabled` is false, `isAfk` always returns false.
+
+### 9.3 Feature 1 — proximity compass (`CompassTask`)
+
+Scheduled every `compass.update-ticks` (default 10). Performance gating, in order:
+- If `!compass.enabled`, return.
+- `loc = store.getLocation()`; require a placed, owned egg: return if `loc == null`
+  (carried) or `store.getOwner() == null` (sitting unclaimed on the fountain).
+- `loc.toBukkit()` empty (End not loaded), return.
+- Iterate only `eggWorld.getPlayers()`. For each: skip the owner unless
+  `compass.show-to-owner`; compute `distanceSquared` and compare to `radius` squared before
+  any trig; skip if outside.
+- Only the rare in-radius player gets `atan2`: bearing to the egg vs. the player's yaw maps
+  to one of 8 arrows, where the up arrow means "dead ahead". Bearing yaw =
+  `Math.toDegrees(atan2(-dx, dz))`; index = `round(((bearingYaw - playerYaw) mod 360)/45) & 7`.
+- Warmer/colder by distance band: outer third of the radius shows a faint "something's near"
+  with no arrow; the middle band shows the directional arrow; the last few blocks show the
+  arrow plus an intensity marker. Delivered with `Msg.nudge` (action bar).
+- Never uses `PlayerMoveEvent`.
+
+### 9.4 Feature 2 — egg-staleness respawn (in `InactivityTask`)
+
+A second trigger beside the existing group-last-seen check. After that check, if
+`getStalenessDays() > 0` and `now - store.getLastActivity() >= stalenessDays`, call
+`plugin.countdown().requestRespawn(owner)` — even if the owner is online. This reuses the
+countdown and `RespawnSequence` exactly as the inactivity path does.
+
+`store.getLastActivity()` is already stamped by every genuine touch (place / break / pickup /
+transfer / abort-on-return). Reward delivery and the accrual ticker deliberately do not
+call `touchActivity()`, so a parked-but-online keeper still goes stale.
+
+Config lives beside the existing knob as `respawn-on-inactivity.staleness-days` (the brief's
+`respawn.staleness-days`). `ConfigManager.getStalenessDays()` validates it is less than
+`inactivity-days`: if it is greater or equal, it logs a warning and returns 0 (off), since a
+staleness window at or beyond the inactivity window is meaningless.
+
+### 9.5 Feature 3 — escalating hold reward (`RewardManager`)
+
+Driven by `HoldTimeTask.addActive(owner, delta)`:
+- Accumulate `rewardProgressMillis`. While it is at least `interval-minutes`, deliver the
+  current tier, subtract one interval, and bump `rewardTier`.
+- Tiers come from `rewards.tiers`: a YAML list where each entry is a list of console commands.
+  Each command runs via `Bukkit.dispatchCommand(getConsoleSender(), cmd)` with `%player%`
+  (and `%tier%`) substituted, so a tier can give items, Vault money, xp, or effects.
+- Beyond the last tier the final tier keeps paying out each interval (so long holders keep
+  earning) — documented behaviour.
+- The "you earned a reward" notice goes only to the online holder (`messages.reward-earned`,
+  `<tier>` placeholder). No server-wide or milestone broadcast.
+
+State and reset. `rewardTier` and `rewardProgressMillis` are fields on `EggState`, persisted
+to `data.yml` (`egg.reward-tier`, `egg.reward-progress`) and tied to the current owner.
+They reset to 0 inside `EggDataStore.setOwner` whenever ownership genuinely changes (covers
+transfer, pickup, and the `setOwner(null, ...)` call inside `RespawnSequence`), so losing the
+egg resets the ladder. `reset-on-loss: false` keeps the progress across hand-offs (the reset
+in `setOwner` becomes conditional on the config flag).
+
+### 9.6 Feature 4 — anti-AFK
+
+See 9.2. Both reward progress and victor totals only advance while the owner is online and
+not AFK. The `AfkCheck` order and the no-`PlayerMoveEvent` fallback are the whole of it;
+`afk.enabled` / `afk.idle-seconds` are the only knobs.
+
+### 9.7 Feature 5 — void / loss safety (`VoidGuardian`)
+
+The single egg must never be permanently lost. The placed-block form is already tracked by
+`store.location`; `VoidGuardian` covers the loose forms:
+- Events: an `ItemSpawnEvent` whose stack is a dragon egg, or an `EntitySpawnEvent` /
+  `EntityChangeBlockEvent` for a `FallingBlock` of `DRAGON_EGG`, marks that one entity as the
+  tracked egg (and sets unlimited lifetime on items, mirroring `Egg.giveOrDrop`). Pickup or
+  landing-as-block clears the tracked entity.
+- Light timer (`void-safety.check-ticks`, default 20 = 1s): if a tracked entity exists and
+  is valid, check only that entity's Y. If it has crossed below `world.getMinHeight()` (the
+  void), recover it. No global entity scans.
+- Recovery: `RespawnSequence.recoverToPortal(reason)` — a new entry point that reuses the
+  spawner and the existing private "reset tracking" tail (factored out of `run()`): it spawns a
+  fresh egg at the End portal via `EndPortalEggSpawner`, sets `owner = null` / `location = portal`
+  / `touchActivity`, removes the lost entity, and posts a `history` `RESPAWN_TRIGGERED` entry
+  plus an `Inbox` `CRITICAL` alert ("the egg fell into the void and was returned to the End").
+  It does not run the "keeper vanished" fanfare or the stray-egg sweep, which are irrelevant to a
+  void rescue.
+
+### 9.8 Feature 6 — victor prestige cosmetics
+
+Classes: `VictorManager`, `ParticleTask`, `DragonReignExpansion`, `LuckPermsHook`, `CosmeticsGui`.
+
+Cumulative active hold-time is fed by `HoldTimeTask.addActive` (9.2) into a per-player
+lifetime total in `VictorManager` (never reset, AFK excluded). At `>= threshold-hours` the
+player is added to the permanent victor set. A player counts as a victor if they are in the set
+or hold the `dragonreign.victor` permission (so admins can grant via their perms plugin too).
+Earning a victor status sends a private congratulation, an `Inbox` `INFO`, and a history entry —
+no server broadcast (consistent with the no-spam tone).
+
+Persistence: a new `victors.yml`, owned by `VictorManager` through `util.Yaml.saveAtomic`,
+mirroring `IpRegistry` / `Inbox`. Wired into `DragonReign.saveAsync()` (snapshot on main thread,
+write off-thread) and the synchronous `onDisable` flush.
+
+```yaml
+players:
+  <uuid>:
+    active-hold-millis: 0
+    victor: true
+    particle: true      # aura toggle (default on)
+    title: true         # title toggle (default on)
+```
+
+Particle aura — `ParticleTask` on `victor.particle-interval-ticks` (not per tick):
+early-return if `!victor.particle-enabled`; otherwise iterate online players and, for each that
+is a victor with their aura on, spawn a small count (`victor.particle-density`) of
+`victor.particle` around them. Skips cleanly when no victors are online.
+
+Title via PlaceholderAPI — `DragonReignExpansion` (`getIdentifier() = "dragonreign"`,
+`persist() = true`), registered in `onEnable` only when
+`getPluginManager().isPluginEnabled("PlaceholderAPI")`:
+- `%dragonreign_title%` returns the coloured title (`victor.title`, legacy `&` codes translated)
+  when the player is a victor with their title toggle on; empty string otherwise.
+- `%dragonreign_is_victor%` returns `true` / `false`.
+- `%dragonreign_reward_tier%` returns the current owner's reward tier (else `0`).
+
+Because TAB, CMI, CustomNameplates, and chat-format plugins all read PlaceholderAPI, the title
+reaches nameplates/chat/tab with no plugin-specific code.
+
+Optional LuckPerms meta — `LuckPermsHook`, guarded by `isPluginEnabled("LuckPerms")` and
+`victor.luckperms-meta` (default false). Uses `LuckPermsProvider.get().getUserManager()
+.modifyUser(uuid, user -> { user.data().clear(meta "dragonreign-title"); user.data().add(
+MetaNode.builder("dragonreign-title", value).build()); })`. All calls wrapped in try/catch; a
+missing or older LuckPerms never throws. Off by default so it cannot clobber existing prefixes.
+
+Toggles and commands. Victors toggle their own cosmetics via `/dr particle`, `/dr title`, or
+the `CosmeticsGui` (`/dr cosmetics`); admins grant/revoke with `/dr victor <grant|revoke>
+<player>`. Toggling the title also pushes or clears the LuckPerms meta when that hook is on.
+All new subcommands use the existing tab-complete and silent-denial pattern.
+
+### 9.9 Wiring, config, permissions, build
+
+`DragonReign` (main): construct `AfkCheck`, `RewardManager`, `VictorManager` (plus `load()`),
+`VoidGuardian`, `CompassTask`, `ParticleTask`, `HoldTimeTask`, `CosmeticsGui`; register
+`VoidGuardian` as a listener; register `DragonReignExpansion` and build `LuckPermsHook` behind
+their plugin-enabled guards. `startTasks()` schedules the four new repeating tasks at their
+configured intervals (so `reloadEverything()` already restarts them). `saveAsync()` and
+`onDisable()` gain `VictorManager`'s snapshot/flush. New singleton getters throughout.
+
+`EggDataStore` / `EggState`: add `int rewardTier`, `long rewardProgressMillis`
+(serialized in `data.yml`), getters/setters, and the conditional reset inside `setOwner`.
+
+`ConfigManager`: typed accessors (and GUI setters where toggled) for `compass.*`,
+`respawn-on-inactivity.staleness-days`, `rewards.*` (including `getRewardTiers(): List<List<String>>`),
+`afk.*`, `void-safety.*`, `victor.*`, and the advanced `hold-time.accrual-ticks`.
+
+`ConfigGui`: new toggle buttons (kept at 36 slots, using free slots in rows 2 and 3):
+Compass, Hold Rewards, Void Safety, AFK accounting, Victor Aura (master), Victor Title (master),
+plus a Staleness-days plus/minus item beside Inactivity-days. Each keeps a plain-language hover line.
+
+`config.yml` (new keys, plain-language comments):
+
+```yaml
+compass:
+  enabled: true
+  radius: 16
+  update-ticks: 10
+  show-to-owner: false
+respawn-on-inactivity:
+  staleness-days: 10        # 0 = off. Must be less than inactivity-days.
+rewards:
+  enabled: true
+  interval-minutes: 60
+  reset-on-loss: true
+  tiers:
+    - ["give %player% diamond 4"]
+    - ["give %player% diamond 8", "xp add %player% 30 levels"]
+    - ["effect give %player% strength 600 1"]
+afk:
+  enabled: true
+  idle-seconds: 300
+void-safety:
+  enabled: true
+  check-ticks: 20
+victor:
+  threshold-hours: 168
+  title: "&6Dragonlord"
+  title-enabled: true
+  particle-enabled: true
+  particle: HAPPY_VILLAGER
+  particle-density: 12
+  particle-interval-ticks: 40
+  luckperms-meta: false
+hold-time:
+  accrual-ticks: 100        # advanced: how often active time is sampled
+messages:
+  reward-earned: "<gold>You held the Dragon Egg long enough to earn a reward! (reward <tier>)</gold>"
+  victor-earned: "<gold>You are now a Dragonlord — your prestige cosmetics are unlocked.</gold>"
+```
+
+`plugin.yml`: `version: 1.2.0`; `softdepend: [PlaceholderAPI, LuckPerms, CMI, Essentials]`;
+new permissions: `dragonreign.victor` (default false, granted on earning), `dragonreign.command.victor`
+(op, child of `dragonreign.admin`), `dragonreign.command.cosmetics` (default true, the player-facing
+toggles). Mirror all three in `Perms.java`. Updated command usage string.
+
+`build.sh`: bump both jar-name lines `DragonReign-1.1.0.jar` to `DragonReign-1.2.0.jar`.
+
+### 9.10 Correctness / performance notes specific to v1.2.0
+
+- One egg, interval-driven. Compass, particles, hold-time, and void checks are all repeating
+  tasks, never `PlayerMoveEvent` or per-tick world scans. Each early-returns when there is nothing
+  to do (no placed egg, no victors online, no tracked entity).
+- Compass cost. `distanceSquared` filters before any `atan2`; only the egg's world is iterated;
+  only an in-radius player ever costs trig plus an action-bar send.
+- Active time cannot be gamed. AFK and offline gaps are discarded; an owner change resets the
+  accrual stamp so time never carries across a hand-off; reward progress resets with the egg, victor
+  totals never do.
+- Void recovery is single-entity. Only the one tracked item/falling-block is polled, and dropped
+  eggs already carry unlimited lifetime, so the timer is the backstop for the void specifically.
+- Soft hooks never break startup. PlaceholderAPI, LuckPerms, CMI, and EssentialsX are all
+  optional: every hook is guarded by a plugin-enabled check or reflection in try/catch, so the
+  plugin runs identically with none of them installed.
+- Persistence stays on the existing writer. `victors.yml` joins `data.yml` / `players.yml` /
+  `inbox.yml` on the single-thread, order-preserving async writer; nothing new touches disk on the
+  main thread.

@@ -52,6 +52,21 @@ public final class InactivityTask extends BukkitRunnable {
             // CountdownManager decides between an instant respawn and a timed one, and
             // quietly ignores the request if a countdown is already running.
             plugin.countdown().requestRespawn(owner);
+            return;
+        }
+
+        // Second trigger: the egg has sat untouched (no place / break / pickup / transfer)
+        // for the staleness window. This fires even if the keeper is online, so a parked
+        // egg can't be held forever. Reward payouts and the accrual ticker deliberately do
+        // not count as "activity", so a parked-but-online keeper still goes stale.
+        int stalenessDays = config.getStalenessDays();
+        if (stalenessDays > 0) {
+            long staleThreshold = TimeUnit.DAYS.toMillis(stalenessDays);
+            if (now - store.getLastActivity() >= staleThreshold) {
+                plugin.getLogger().info("Egg untouched for >= " + stalenessDays
+                        + " days; requesting respawn (keeper " + owner + ").");
+                plugin.countdown().requestRespawn(owner);
+            }
         }
     }
 }

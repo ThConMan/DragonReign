@@ -30,13 +30,21 @@ public final class ConfigGui {
     private static final int SLOT_ANNOUNCE = 14;
     private static final int SLOT_DAYS = 15;
     private static final int SLOT_SOUND = 16;
-    // Row 2 (slots 19-25): v2 controls.
+    // Row 2 (slots 19-25): v2 controls + v1.2 compass/rewards.
     private static final int SLOT_COUNTDOWN = 19;
     private static final int SLOT_STRICT = 20;
-    private static final int SLOT_INBOX = 25;
+    private static final int SLOT_COMPASS = 21;
+    private static final int SLOT_REWARDS = 22;
     private static final int SLOT_TELEPORT = 23; // jump to the egg when it's placed
     private static final int SLOT_HISTORY = 24;  // open the history GUI
+    private static final int SLOT_INBOX = 25;
+    // Row 3 (slots 28-34): v1.2 controls.
+    private static final int SLOT_VOID = 28;
+    private static final int SLOT_AFK = 29;
+    private static final int SLOT_VICTOR_AURA = 30;
     private static final int SLOT_CLOSE = 31;    // close the menu
+    private static final int SLOT_VICTOR_TITLE = 32;
+    private static final int SLOT_STALENESS = 33;
 
     private final DragonReign plugin;
 
@@ -87,9 +95,39 @@ public final class ConfigGui {
 
         inv.setItem(SLOT_STRICT, toggle(c.isStrictOwnershipEnabled(), "Strict Ownership",
                 "Flag alt/IP-linked or inactive transfers to the staff inbox",
-                "<dark_gray>IP matching is imperfect (shared homes, CGNAT, VPN)</dark_gray>",
+                "<dark_gray>Different people can look linked (shared homes, school or phone networks)</dark_gray>",
                 "<dark_gray>Default is FLAG, not enforce — see config.yml</dark_gray>",
-                "<dark_gray>Only salted IP hashes are stored, never raw IPs</dark_gray>"));
+                "<dark_gray>Only scrambled codes are saved, never the real address</dark_gray>"));
+
+        inv.setItem(SLOT_COMPASS, toggle(c.isCompassEnabled(), "Egg Compass",
+                "Show nearby players an arrow toward the placed egg",
+                "<dark_gray>Range: " + c.getCompassRadius() + " blocks</dark_gray>"));
+
+        inv.setItem(SLOT_REWARDS, toggle(c.isRewardsEnabled(), "Hold Rewards",
+                "Reward the keeper for every stretch of time they hold the egg",
+                "<dark_gray>Every " + c.getRewardIntervalMinutes() + " minute(s) of active holding</dark_gray>"));
+
+        // ── v1.2 bottom row ─────────────────────────────────────────────────
+        inv.setItem(SLOT_VOID, toggle(c.isVoidSafetyEnabled(), "Void Safety",
+                "Rescue the egg if it ever falls into the void"));
+
+        inv.setItem(SLOT_AFK, toggle(c.isAfkEnabled(), "Away Check",
+                "Pause reward and Dragonlord time while the keeper is away (AFK)"));
+
+        inv.setItem(SLOT_VICTOR_AURA, toggle(c.isVictorParticleEnabled(), "Dragonlord Aura",
+                "Master switch for the sparkle aura around Dragonlords"));
+
+        inv.setItem(SLOT_VICTOR_TITLE, toggle(c.isVictorTitleEnabled(), "Dragonlord Title",
+                "Master switch for the Dragonlord chat/tab title"));
+
+        int staleness = c.getStalenessDaysRaw();
+        inv.setItem(SLOT_STALENESS, Items.of(Material.COBWEB,
+                Msg.mm("<aqua>Staleness Days: <white>" + (staleness == 0 ? "off" : staleness) + "</white></aqua>"),
+                List.of(
+                        Msg.mm("<gray>Respawn the egg if it sits untouched this long</gray>"),
+                        Msg.mm("<gray>even while the owner is online. <white>0 = off</white></gray>"),
+                        Msg.mm("<gray>Left-click <white>+1</white>, right-click <white>-1</white></gray>"),
+                        Msg.mm("<dark_gray>Must be less than Inactivity Days</dark_gray>"))));
 
         int unread = plugin.inbox().unreadCount();
         inv.setItem(SLOT_INBOX, Items.of(Material.BARREL,
@@ -165,12 +203,22 @@ public final class ConfigGui {
             case SLOT_ANNOUNCE -> c.setAnnounceEnabled(!c.isAnnounceEnabled());
             case SLOT_COUNTDOWN -> c.setCountdownEnabled(!c.isCountdownEnabled());
             case SLOT_STRICT -> c.setStrictOwnershipEnabled(!c.isStrictOwnershipEnabled());
+            case SLOT_COMPASS -> c.setCompassEnabled(!c.isCompassEnabled());
+            case SLOT_REWARDS -> c.setRewardsEnabled(!c.isRewardsEnabled());
+            case SLOT_VOID -> c.setVoidSafetyEnabled(!c.isVoidSafetyEnabled());
+            case SLOT_AFK -> c.setAfkEnabled(!c.isAfkEnabled());
+            case SLOT_VICTOR_AURA -> c.setVictorParticleEnabled(!c.isVictorParticleEnabled());
+            case SLOT_VICTOR_TITLE -> c.setVictorTitleEnabled(!c.isVictorTitleEnabled());
             case SLOT_DAYS -> {
                 int delta = click.isShiftClick() ? 7 : 1;
                 if (click.isRightClick()) {
                     delta = -delta;
                 }
                 c.setInactivityDays(c.getInactivityDays() + delta);
+            }
+            case SLOT_STALENESS -> {
+                int delta = click.isRightClick() ? -1 : 1;
+                c.setStalenessDays(c.getStalenessDaysRaw() + delta);
             }
             case SLOT_SOUND -> c.setSoundMode(c.getSoundMode().next());
             case SLOT_INBOX -> {

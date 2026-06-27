@@ -36,6 +36,11 @@ public final class EggDataStore {
     // place instead of being copy-pasted into each listener. Nullable = nobody listening.
     private OwnerChangeHook ownerChangedHook;
 
+    // v1.2: tells setOwner whether losing the egg should wipe the hold-reward ladder.
+    // Null = always reset (the default). Wired to config.isRewardResetOnLoss() so the
+    // "keep progress across hand-offs" option only has to live in one place.
+    private java.util.function.BooleanSupplier rewardResetPolicy;
+
     /**
      * Owner-change callback. {@code previous} may be null (egg was unowned).
      * {@code receiverPriorSeen} is the receiver's last-seen as it stood BEFORE this
@@ -56,6 +61,11 @@ public final class EggDataStore {
     /** Wire the strict-ownership evaluator. */
     public void setOwnerChangedHook(OwnerChangeHook hook) {
         this.ownerChangedHook = hook;
+    }
+
+    /** Wire the "should losing the egg reset the hold-reward ladder?" check. */
+    public void setRewardResetPolicy(java.util.function.BooleanSupplier policy) {
+        this.rewardResetPolicy = policy;
     }
 
     // ── Loading ─────────────────────────────────────────────────────────────
@@ -83,6 +93,8 @@ public final class EggDataStore {
 
         state.lastActivity = data.getLong("egg.last-activity", System.currentTimeMillis());
         state.enforcedClockFloor = data.getLong("egg.enforced-clock-floor", 0L);
+        state.rewardTier = Math.max(0, data.getInt("egg.reward-tier", 0));
+        state.rewardProgressMillis = Math.max(0L, data.getLong("egg.reward-progress", 0L));
 
         ConfigurationSection seen = data.getConfigurationSection("last-seen");
         if (seen != null) {
@@ -154,6 +166,14 @@ public final class EggDataStore {
             // IP-link transfer re-establishes it inside the hook below.
             clearEnforcedClock();
 
+            // Losing the egg resets the hold-reward ladder for the new keeper, unless the
+            // server turned that off. Covers transfer, pickup, and the respawn reset
+            // (setOwner(null, ...)) — every path ownership changes flows through here.
+            if (rewardResetPolicy == null || rewardResetPolicy.getAsBoolean()) {
+                state.rewardTier = 0;
+                state.rewardProgressMillis = 0L;
+            }
+
             String detail = "from " + (old != null ? old : "none") + " to "
                     + (newOwner != null ? newOwner : "none")
                     + (reason != null ? " (" + reason + ")" : "");
@@ -207,6 +227,24 @@ public final class EggDataStore {
 
     public void clearEnforcedClock() {
         state.enforcedClockFloor = 0L;
+    }
+
+    // ── Hold-reward ladder (current keeper) ──────────────────────────────────
+
+    public int getRewardTier() {
+        return state.rewardTier;
+    }
+
+    public void setRewardTier(int tier) {
+        state.rewardTier = Math.max(0, tier);
+    }
+
+    public long getRewardProgressMillis() {
+        return state.rewardProgressMillis;
+    }
+
+    public void setRewardProgressMillis(long millis) {
+        state.rewardProgressMillis = Math.max(0L, millis);
     }
 
     public void markSeen(UUID uuid) {
@@ -283,6 +321,8 @@ public final class EggDataStore {
                 state.location,
                 state.lastActivity,
                 state.enforcedClockFloor,
+                state.rewardTier,
+                state.rewardProgressMillis,
                 new LinkedHashMap<>(state.lastSeen),
                 new ArrayList<>(state.pendingErase),
                 new LinkedHashMap<>(state.pendingGive),
@@ -304,6 +344,12 @@ public final class EggDataStore {
         out.set("egg.last-activity", snap.lastActivity);
         if (snap.enforcedClockFloor > 0) {
             out.set("egg.enforced-clock-floor", snap.enforcedClockFloor);
+        }
+        if (snap.rewardTier > 0) {
+            out.set("egg.reward-tier", snap.rewardTier);
+        }
+        if (snap.rewardProgressMillis > 0) {
+            out.set("egg.reward-progress", snap.rewardProgressMillis);
         }
 
         // Only the current owner's last-seen is ever read back; persisting the whole

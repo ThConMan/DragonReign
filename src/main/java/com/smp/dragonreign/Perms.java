@@ -28,6 +28,14 @@ public final class Perms {
     /** Use the teleport-to-egg button in the config GUI. */
     public static final String TELEPORT = "dragonreign.gui.teleport";
 
+    /** Admins grant/revoke Dragonlord status. Child of {@link #ADMIN}. */
+    public static final String CMD_VICTOR = "dragonreign.command.victor";
+    /** Player-facing cosmetic toggles (/dr particle, /dr title, /dr cosmetics). Default true. */
+    public static final String COSMETICS = "dragonreign.command.cosmetics";
+
+    /** Marks a player as a Dragonlord (victor). Granted automatically at the threshold. */
+    public static final String VICTOR = "dragonreign.victor";
+
     /** Parent node; in plugin.yml it grants every command.* / gui.* node above. */
     public static final String ADMIN = "dragonreign.admin";
 }

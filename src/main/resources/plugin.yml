@@ -1,15 +1,16 @@
 name: DragonReign
-version: 1.1.0
+version: 1.2.0
 main: com.smp.dragonreign.DragonReign
 api-version: '1.21'
 author: ThConMan
 description: Enforces a server's special Dragon Egg rules for an SMP.
 website: https://github.com/ThConMan/DragonReign
+softdepend: [PlaceholderAPI, LuckPerms, CMI, Essentials]
 
 commands:
   dragonreign:
     description: DragonReign admin and info commands.
-    usage: /dr <gui|log|inbox|respawn [force]|cancel|reload|info>
+    usage: /dr <gui|log|inbox|respawn [force]|cancel|reload|victor|cosmetics|particle|title|info>
     aliases: [dr, dreign, degg]
   giveegg:
     description: Hand the Dragon Egg you are holding to another online player.
@@ -47,6 +48,15 @@ permissions:
   dragonreign.gui.teleport:
     description: Use the teleport-to-egg button in the config GUI.
     default: op
+  dragonreign.command.victor:
+    description: Grant or revoke Dragonlord status.
+    default: op
+  dragonreign.command.cosmetics:
+    description: Use the player cosmetic toggles (/dr cosmetics, particle, title).
+    default: true
+  dragonreign.victor:
+    description: Marks a player as a Dragonlord. Granted automatically at the hold-time threshold.
+    default: false
   dragonreign.admin:
     description: Grants every DragonReign admin permission (the command.* and gui.* nodes).
     default: op
@@ -58,4 +68,5 @@ permissions:
       dragonreign.command.respawn: true
       dragonreign.command.cancel: true
       dragonreign.command.reload: true
+      dragonreign.command.victor: true
       dragonreign.gui.teleport: true

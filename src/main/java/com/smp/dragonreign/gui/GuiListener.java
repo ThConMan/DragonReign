@@ -39,6 +39,7 @@ public final class GuiListener implements Listener {
             case CONFIG -> plugin.configGui().handleClick(player, top, event.getSlot(), event.getClick());
             case HISTORY -> plugin.historyGui().handleClick(player, holder.page(), event.getSlot());
             case INBOX -> plugin.inboxGui().handleClick(player, holder.page(), event.getSlot(), event.getClick());
+            case COSMETICS -> plugin.cosmeticsGui().handleClick(player, top, event.getSlot());
         }
     }
 

@@ -304,6 +304,214 @@ public final class ConfigManager {
                 "<yellow><seconds>s</yellow> <gray>until it returns to the End</gray>");
     }
 
+    // ── Proximity compass (v1.2) ──────────────────────────────────────────────
+
+    public boolean isCompassEnabled() {
+        return cfg().getBoolean("compass.enabled", true);
+    }
+
+    public void setCompassEnabled(boolean value) {
+        cfg().set("compass.enabled", value);
+        save();
+    }
+
+    public int getCompassRadius() {
+        // Clamped to a sane maximum: a very large radius would broadcast a directional
+        // arrow toward the hidden egg to everyone in range, leaking a base from far away.
+        return Math.min(64, Math.max(1, cfg().getInt("compass.radius", 16)));
+    }
+
+    public int getCompassUpdateTicks() {
+        return Math.max(1, cfg().getInt("compass.update-ticks", 10));
+    }
+
+    public boolean isCompassShowToOwner() {
+        return cfg().getBoolean("compass.show-to-owner", false);
+    }
+
+    // ── Egg-staleness respawn (v1.2) ──────────────────────────────────────────
+
+    /**
+     * Days the egg may sit untouched before it respawns even with the owner online.
+     * 0 = off. Must be less than inactivity-days, or it would never get a chance to
+     * fire ahead of the plain inactivity timer; if it's set too high we log once and
+     * treat it as off.
+     */
+    public int getStalenessDays() {
+        int days = cfg().getInt("respawn-on-inactivity.staleness-days", 10);
+        if (days <= 0) {
+            return 0;
+        }
+        if (days >= getInactivityDays()) {
+            plugin.getLogger().warning("respawn-on-inactivity.staleness-days (" + days
+                    + ") must be less than inactivity-days (" + getInactivityDays()
+                    + "); treating staleness respawn as off.");
+            return 0;
+        }
+        return days;
+    }
+
+    /** The stored staleness value as-is (no validation), for display and GUI adjustment. */
+    public int getStalenessDaysRaw() {
+        return Math.max(0, cfg().getInt("respawn-on-inactivity.staleness-days", 10));
+    }
+
+    public void setStalenessDays(int days) {
+        cfg().set("respawn-on-inactivity.staleness-days", Math.max(0, days));
+        save();
+    }
+
+    // ── Hold rewards (v1.2) ───────────────────────────────────────────────────
+
+    public boolean isRewardsEnabled() {
+        return cfg().getBoolean("rewards.enabled", true);
+    }
+
+    public void setRewardsEnabled(boolean value) {
+        cfg().set("rewards.enabled", value);
+        save();
+    }
+
+    public int getRewardIntervalMinutes() {
+        return Math.max(1, cfg().getInt("rewards.interval-minutes", 60));
+    }
+
+    public boolean isRewardResetOnLoss() {
+        return cfg().getBoolean("rewards.reset-on-loss", true);
+    }
+
+    /**
+     * The reward ladder: each entry is a list of console commands to run for that tier,
+     * with {@code %player%} and {@code %tier%} substituted. Returns an empty list if
+     * nothing is configured. Defensive against malformed YAML (skips non-list rows).
+     */
+    public List<List<String>> getRewardTiers() {
+        List<List<String>> out = new ArrayList<>();
+        List<?> raw = cfg().getList("rewards.tiers");
+        if (raw == null) {
+            return out;
+        }
+        for (Object row : raw) {
+            if (row instanceof List<?> cmds) {
+                List<String> tier = new ArrayList<>();
+                for (Object cmd : cmds) {
+                    if (cmd != null) {
+                        tier.add(cmd.toString());
+                    }
+                }
+                if (!tier.isEmpty()) {
+                    out.add(tier);
+                }
+            }
+        }
+        return out;
+    }
+
+    public String getRewardEarnedMessage() {
+        return cfg().getString("messages.reward-earned",
+                "<gold>You held the Dragon Egg long enough to earn a reward! (reward <tier>)</gold>");
+    }
+
+    // ── Anti-AFK (v1.2) ───────────────────────────────────────────────────────
+
+    public boolean isAfkEnabled() {
+        return cfg().getBoolean("afk.enabled", true);
+    }
+
+    public void setAfkEnabled(boolean value) {
+        cfg().set("afk.enabled", value);
+        save();
+    }
+
+    public int getAfkIdleSeconds() {
+        return Math.max(1, cfg().getInt("afk.idle-seconds", 300));
+    }
+
+    // ── Void / loss safety (v1.2) ─────────────────────────────────────────────
+
+    public boolean isVoidSafetyEnabled() {
+        return cfg().getBoolean("void-safety.enabled", true);
+    }
+
+    public void setVoidSafetyEnabled(boolean value) {
+        cfg().set("void-safety.enabled", value);
+        save();
+    }
+
+    public int getVoidCheckTicks() {
+        // Clamped to at most 1s: a loose egg falls at terminal velocity, so a wider check
+        // window could let it cross the void-kill plane between checks and be lost for good.
+        return Math.min(20, Math.max(1, cfg().getInt("void-safety.check-ticks", 20)));
+    }
+
+    // ── Victor prestige cosmetics (v1.2) ──────────────────────────────────────
+
+    public int getVictorThresholdHours() {
+        return Math.max(1, cfg().getInt("victor.threshold-hours", 168));
+    }
+
+    public String getVictorTitle() {
+        return cfg().getString("victor.title", "&6Dragonlord");
+    }
+
+    public boolean isVictorTitleEnabled() {
+        return cfg().getBoolean("victor.title-enabled", true);
+    }
+
+    public void setVictorTitleEnabled(boolean value) {
+        cfg().set("victor.title-enabled", value);
+        save();
+    }
+
+    public boolean isVictorParticleEnabled() {
+        return cfg().getBoolean("victor.particle-enabled", true);
+    }
+
+    public void setVictorParticleEnabled(boolean value) {
+        cfg().set("victor.particle-enabled", value);
+        save();
+    }
+
+    public String getVictorParticle() {
+        return cfg().getString("victor.particle", "HAPPY_VILLAGER");
+    }
+
+    public int getVictorParticleDensity() {
+        return Math.max(1, cfg().getInt("victor.particle-density", 12));
+    }
+
+    public int getVictorParticleIntervalTicks() {
+        return Math.max(1, cfg().getInt("victor.particle-interval-ticks", 40));
+    }
+
+    public boolean isVictorLuckPermsMeta() {
+        return cfg().getBoolean("victor.luckperms-meta", false);
+    }
+
+    public String getVictorEarnedMessage() {
+        return cfg().getString("messages.victor-earned",
+                "<gold>You are now a Dragonlord — your prestige cosmetics are unlocked.</gold>");
+    }
+
+    // ── Hold-time accrual (v1.2, advanced) ────────────────────────────────────
+
+    public int getHoldAccrualTicks() {
+        return Math.max(1, cfg().getInt("hold-time.accrual-ticks", 100));
+    }
+
+    /**
+     * When true, reward and Dragonlord time only accrue while the owner is genuinely with
+     * the egg — carrying it, or standing within {@link #getHoldPresenceRadius()} of the
+     * placed block. Stops a parked egg from farming time while the owner is elsewhere.
+     */
+    public boolean isHoldRequirePresence() {
+        return cfg().getBoolean("hold-time.require-presence", true);
+    }
+
+    public int getHoldPresenceRadius() {
+        return Math.max(1, cfg().getInt("hold-time.presence-radius", 16));
+    }
+
     // ── Advanced ────────────────────────────────────────────────────────────
 
     public String getEndWorldName() {

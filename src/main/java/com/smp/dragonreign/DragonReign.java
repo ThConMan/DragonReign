@@ -1,28 +1,39 @@
 package com.smp.dragonreign;
 
+import com.smp.dragonreign.afk.AfkCheck;
 import com.smp.dragonreign.announce.AnnouncementService;
 import com.smp.dragonreign.command.DragonReignCommand;
 import com.smp.dragonreign.command.GiveEggCommand;
 import com.smp.dragonreign.config.ConfigManager;
 import com.smp.dragonreign.gui.ConfigGui;
+import com.smp.dragonreign.gui.CosmeticsGui;
 import com.smp.dragonreign.gui.GuiListener;
 import com.smp.dragonreign.gui.HistoryGui;
 import com.smp.dragonreign.gui.InboxGui;
+import com.smp.dragonreign.hook.LuckPermsHook;
 import com.smp.dragonreign.inbox.Inbox;
 import com.smp.dragonreign.listener.ContainerProtectionListener;
 import com.smp.dragonreign.listener.DropProtectionListener;
 import com.smp.dragonreign.listener.EggTrackingListener;
 import com.smp.dragonreign.ownership.IpRegistry;
 import com.smp.dragonreign.ownership.OwnershipPolicy;
+import com.smp.dragonreign.papi.DragonReignExpansion;
+import com.smp.dragonreign.reward.RewardManager;
 import com.smp.dragonreign.store.EggDataStore;
 import com.smp.dragonreign.store.HistoryLog;
+import com.smp.dragonreign.task.CompassTask;
 import com.smp.dragonreign.task.CountdownManager;
 import com.smp.dragonreign.task.EnderChestSweepTask;
+import com.smp.dragonreign.task.HoldTimeTask;
 import com.smp.dragonreign.task.InactivityTask;
+import com.smp.dragonreign.task.ParticleTask;
+import com.smp.dragonreign.task.RespawnSequence;
+import com.smp.dragonreign.task.VoidGuardian;
 import com.smp.dragonreign.model.EggLocation;
 import com.smp.dragonreign.util.EndPortalEggSpawner;
 import com.smp.dragonreign.util.Msg;
 import com.smp.dragonreign.util.Scheduling;
+import com.smp.dragonreign.victor.VictorManager;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -57,9 +68,21 @@ public final class DragonReign extends JavaPlugin {
     private CountdownManager countdown;
     private InboxGui inboxGui;
 
+    // v1.2 services
+    private AfkCheck afk;
+    private RewardManager rewards;
+    private VictorManager victors;
+    private LuckPermsHook luckPerms;
+    private CosmeticsGui cosmeticsGui;
+    private VoidGuardian voidGuardian;
+
     private BukkitTask inactivityTask;
     private BukkitTask sweepTask;
     private BukkitTask autosaveTask;
+    private BukkitTask compassTask;
+    private BukkitTask particleTask;
+    private BukkitTask holdTimeTask;
+    private BukkitTask voidTask;
 
     // Single-thread writer: snapshots are taken on the main thread in call order, and
     // this executor drains them in that same submission order so a slow earlier write
@@ -94,15 +117,39 @@ public final class DragonReign extends JavaPlugin {
 
         // One hook, evaluated on every real ownership change (place / pickup / giveegg).
         this.store.setOwnerChangedHook(ownership::evaluateTransfer);
+        // Losing the egg resets the hold-reward ladder unless the server turned that off.
+        this.store.setRewardResetPolicy(() -> config.isRewardResetOnLoss());
+
+        // v1.2 services. The AFK check and reward/victor managers are pure logic; the
+        // LuckPerms hook and PlaceholderAPI expansion are soft and guard themselves.
+        this.afk = new AfkCheck(this);
+        this.luckPerms = new LuckPermsHook(this);
+        this.rewards = new RewardManager(this);
+        this.victors = new VictorManager(this, new File(getDataFolder(), "victors.yml"), getLogger());
+        this.victors.load();
 
         this.configGui = new ConfigGui(this);
         this.historyGui = new HistoryGui(this);
         this.inboxGui = new InboxGui(this);
+        this.cosmeticsGui = new CosmeticsGui(this);
 
         getServer().getPluginManager().registerEvents(new ContainerProtectionListener(this), this);
         getServer().getPluginManager().registerEvents(new DropProtectionListener(this), this);
         getServer().getPluginManager().registerEvents(new EggTrackingListener(this), this);
         getServer().getPluginManager().registerEvents(new GuiListener(this), this);
+
+        this.voidGuardian = new VoidGuardian(this, new RespawnSequence(this));
+        getServer().getPluginManager().registerEvents(voidGuardian, this);
+
+        // Register the PlaceholderAPI expansion only when PlaceholderAPI is present.
+        if (getServer().getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+            try {
+                new DragonReignExpansion(this).register();
+                getLogger().info("Registered the PlaceholderAPI expansion (dragonreign).");
+            } catch (Throwable t) {
+                getLogger().warning("Could not register the PlaceholderAPI expansion: " + t.getMessage());
+            }
+        }
 
         DragonReignCommand main = new DragonReignCommand(this);
         if (getCommand("dragonreign") != null) {
@@ -179,6 +226,9 @@ public final class DragonReign extends JavaPlugin {
         if (inbox != null) {
             inbox.saveSync();
         }
+        if (victors != null) {
+            victors.saveSync();
+        }
         getLogger().info("DragonReign disabled — state saved.");
     }
 
@@ -194,6 +244,19 @@ public final class DragonReign extends JavaPlugin {
         // Periodic snapshot-and-write so a crash never loses more than a few minutes.
         long autosavePeriod = Scheduling.minutesToTicks(5);
         autosaveTask = Scheduling.timer(this, this::saveAsync, autosavePeriod, autosavePeriod);
+
+        // v1.2 interval tasks. Each early-returns when there's nothing to do.
+        long compassPeriod = config.getCompassUpdateTicks();
+        compassTask = new CompassTask(this).runTaskTimer(this, compassPeriod, compassPeriod);
+
+        long particlePeriod = config.getVictorParticleIntervalTicks();
+        particleTask = new ParticleTask(this).runTaskTimer(this, particlePeriod, particlePeriod);
+
+        long holdPeriod = config.getHoldAccrualTicks();
+        holdTimeTask = new HoldTimeTask(this).runTaskTimer(this, holdPeriod, holdPeriod);
+
+        long voidPeriod = config.getVoidCheckTicks();
+        voidTask = Scheduling.timer(this, voidGuardian::tick, voidPeriod, voidPeriod);
     }
 
     private void stopTasks() {
@@ -209,11 +272,28 @@ public final class DragonReign extends JavaPlugin {
             autosaveTask.cancel();
             autosaveTask = null;
         }
+        if (compassTask != null) {
+            compassTask.cancel();
+            compassTask = null;
+        }
+        if (particleTask != null) {
+            particleTask.cancel();
+            particleTask = null;
+        }
+        if (holdTimeTask != null) {
+            holdTimeTask.cancel();
+            holdTimeTask = null;
+        }
+        if (voidTask != null) {
+            voidTask.cancel();
+            voidTask = null;
+        }
     }
 
     /** Re-read config.yml and restart tasks so any changed intervals take effect. */
     public void reloadEverything() {
         config.reload();
+        victors.invalidateTitleCache(); // title text may have changed; drop the PAPI hot-path cache
         stopTasks();
         startTasks();
     }
@@ -226,6 +306,7 @@ public final class DragonReign extends JavaPlugin {
         YamlConfiguration eggYaml = store.buildSnapshotYaml();
         YamlConfiguration playersYaml = ipRegistry.buildSnapshotYaml();
         YamlConfiguration inboxYaml = inbox.buildSnapshotYaml();
+        YamlConfiguration victorsYaml = victors.buildSnapshotYaml();
         // Drain on the single-thread writer in submission order (NOT the Bukkit async
         // pool, which gives no ordering guarantee and could persist a stale snapshot).
         if (saveExecutor.isShutdown()) {
@@ -236,6 +317,7 @@ public final class DragonReign extends JavaPlugin {
                 store.write(eggYaml);
                 ipRegistry.write(playersYaml);
                 inbox.write(inboxYaml);
+                victors.write(victorsYaml);
             });
         } catch (java.util.concurrent.RejectedExecutionException ignored) {
             // Raced with shutdown; the synchronous flush in onDisable covers it.
@@ -290,5 +372,25 @@ public final class DragonReign extends JavaPlugin {
 
     public InboxGui inboxGui() {
         return inboxGui;
+    }
+
+    public AfkCheck afk() {
+        return afk;
+    }
+
+    public RewardManager rewards() {
+        return rewards;
+    }
+
+    public VictorManager victors() {
+        return victors;
+    }
+
+    public LuckPermsHook luckPerms() {
+        return luckPerms;
+    }
+
+    public CosmeticsGui cosmeticsGui() {
+        return cosmeticsGui;
     }
 }

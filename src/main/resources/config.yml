@@ -4,7 +4,7 @@
 #  Every rule below can also be flipped live from the in-game config GUI
 #  (/dragonreign gui). Editing this file by hand and running /dragonreign reload
 #  works too. The protections apply to ALL dragon egg items, not a single tagged
-#  one, so they can't be laundered by duping a "fake" egg.
+#  one, so the rules can't be dodged by making a copycat egg.
 # ═══════════════════════════════════════════════════════════════════════════
 
 # ── Protection rules (toggle these live) ───────────────────────────────────
@@ -21,10 +21,24 @@ enderchest-sweep:
   enabled: true            # default: true
   interval-minutes: 5      # default: 5. safety-net scan of online players' ender chests
 
+# ── Egg compass ────────────────────────────────────────────────────────────
+# Players standing near the placed egg see an action-bar arrow pointing toward it,
+# so a hidden egg can always be tracked down. Far edge of the range shows only a
+# faint "something's near"; closer shows a direction; right on top shows "right here".
+compass:
+  enabled: true            # default: true
+  radius: 16               # default: 16. only players within this many blocks see the arrow
+  update-ticks: 10         # default: 10 (about twice a second). how often the arrow refreshes
+  show-to-owner: false     # default: false. also show the arrow to the egg's owner
+
 respawn-on-inactivity:
   enabled: true            # default: true
   inactivity-days: 14      # default: 14. owner gone this long -> the egg respawns in the End
   check-interval-minutes: 5   # default: 5. how often inactivity is checked
+  # Bring the egg back if it sits untouched (not placed, broken, picked up, or handed over)
+  # for this many days -- even if the owner is online. Stops someone from parking the egg
+  # forever. Set to 0 to turn this off. Must be less than inactivity-days.
+  staleness-days: 10       # default: 10. 0 = off
 
 # ── Respawn countdown ──────────────────────────────────────────────────────
 # When the inactivity check decides the egg should come back, it does NOT respawn
@@ -40,28 +54,30 @@ respawn-countdown:
   tick-sound: "minecraft:block.note_block.pling"      # default shown; played at each warn mark
 
 # ── Strict ownership + IP / alt detection (OPTIONAL, OFF by default) ────────
-# PRIVACY: this NEVER stores raw IP addresses. On login it stores only a salted
-# SHA-256 hash of the address, used solely to ask "have two accounts connected from
-# the same place?". The salt below is auto-generated on first run.
+# PRIVACY: this NEVER saves real IP addresses. When a player joins it saves only a
+# scrambled, one-way code made from the address, used only to ask "have two accounts
+# joined from the same place?". The secret used to scramble it is made automatically
+# on first run.
 #
-# IP matching is imperfect — shared houses, school/uni networks, CGNAT, mobile
-# carriers and VPNs all make unrelated people look "linked". For that reason the
-# default behaviour is to FLAG (post a staff-inbox alert), NOT to enforce. Turn on
-# auto-enforce-ip-links only if you understand and accept those false positives.
+# This is not perfect — people who share one internet connection (same house, school,
+# phone network, or VPN) can look "linked" even when they're strangers. For that reason
+# the default is to FLAG (post a staff-inbox alert), NOT to enforce. Turn on
+# auto-enforce-ip-links only if you understand and accept those false matches.
 strict-ownership:
   enabled: false                       # default: false. master switch for transfer checks
   min-receiver-active-days: 7          # default: 7. receiver idle longer than this -> flagged
   check-ip-alts: true                  # default: true. also use IP-link checks + group last-seen
   auto-enforce-ip-links: false         # default: false. true = an alt hand-off won't reset the timer
-  # An IP hash shared by more than this many accounts is treated as a CGNAT/VPN/shared
-  # endpoint and IGNORED for alt-grouping — so an inactive keeper can't log in once through
-  # a busy public IP to borrow strangers' fresh logins and keep the egg immortal. 0 = no cap.
+  # If more than this many accounts share one connection code, it's treated as a shared or
+  # public connection (like a phone network or VPN) and IGNORED for alt-grouping — so an
+  # inactive keeper can't log in once through a busy public connection to borrow strangers'
+  # recent logins and keep the egg forever. 0 = no cap.
   max-ip-group: 8                      # default: 8
   ip-hash-salt: ""                     # AUTO-GENERATED on first run. Do NOT change or share it;
-                                       # changing it invalidates every hash already on record.
+                                       # changing it makes every saved code stop matching.
 
 # ── Staff inbox ────────────────────────────────────────────────────────────
-# A persisted alert queue for admins: alt/IP flags, dupe cleanups, respawns, etc.
+# A saved alert queue for admins: alt/IP flags, dupe cleanups, respawns, etc.
 # Alerts DM any online admin immediately and are always queued for /dragonreign inbox.
 inbox:
   enabled: true                        # default: true
@@ -87,6 +103,57 @@ announce:
     mode: BOTH             # default: BOTH
     custom-key: "minecraft:entity.ender_dragon.growl"   # default shown; only used when mode is CUSTOM
 
+# ── Hold rewards ───────────────────────────────────────────────────────────
+# The current owner earns a reward for every stretch of time they actively hold the
+# egg. Each "tier" below is a list of console commands run for that reward, with
+# %player% (and %tier%) filled in -- so you can give items, money, xp, or effects.
+# After the first reward the owner moves up to the next tier; past the last tier the
+# top tier keeps paying out. The ladder resets to the start when the egg changes hands
+# (unless reset-on-loss is false). Only the owner is told when they earn -- no broadcasts.
+rewards:
+  enabled: true            # default: true
+  interval-minutes: 60     # default: 60. active holding time needed for each reward
+  reset-on-loss: true      # default: true. losing the egg resets the owner back to tier 1
+  tiers:                   # each line is one reward = a list of console commands
+    - ["give %player% diamond 4"]
+    - ["give %player% diamond 8", "xp add %player% 30 levels"]
+    - ["effect give %player% strength 600 1"]
+
+# ── Away (AFK) check ───────────────────────────────────────────────────────
+# Reward time and Dragonlord time only build up while the owner is really playing.
+# The owner counts as away if CMI or EssentialsX (when installed) says so, OR if they
+# haven't actually travelled for idle-seconds. The built-in travel check always runs too,
+# so a stationary auto-clicker is still caught even when another plugin reports "active".
+# Small repeated motion (an AFK pool, a tiny loop, a one-block nudge) does not count.
+afk:
+  enabled: true            # default: true
+  idle-seconds: 300        # default: 300. no real travel for this long counts as away
+
+# ── Void safety ────────────────────────────────────────────────────────────
+# The one egg can never be lost for good. If a dropped egg or a falling egg block ever
+# slips into the void, it's rebuilt on the End fountain and staff get an alert.
+void-safety:
+  enabled: true            # default: true
+  check-ticks: 20          # default: 20 (about once a second). how often the loose egg is checked.
+                           # capped at 20: a wider gap could let a falling egg cross into the void unseen
+
+# ── Dragonlord (victor) cosmetics ──────────────────────────────────────────
+# Holding the egg builds up lifetime active hold-time (away time doesn't count, and it
+# never resets). Once a player passes threshold-hours they permanently become a
+# "Dragonlord" and unlock cosmetics: a sparkle aura and a chat/tab title. Players can
+# turn their own cosmetics on or off; admins can grant or revoke Dragonlord status.
+victor:
+  threshold-hours: 168     # default: 168 (7 days of active holding) to become a Dragonlord
+  title: "&6Dragonlord"    # default shown. the title text (use & colour codes)
+  title-enabled: true      # default: true. master switch for the title
+  particle-enabled: true   # default: true. master switch for the aura
+  particle: HAPPY_VILLAGER # default shown. particle type for the aura
+  particle-density: 12     # default: 12. how many particles per puff
+  particle-interval-ticks: 40   # default: 40 (every 2 seconds). how often the aura shows
+  # Optional: also write the title as a LuckPerms meta value ("dragonreign-title") so
+  # LuckPerms-based prefixes can use it. Off by default so it won't touch existing prefixes.
+  luckperms-meta: false    # default: false
+
 # ── Bookkeeping ────────────────────────────────────────────────────────────
 history:
   max-entries: 1000        # default: 1000
@@ -107,6 +174,10 @@ messages:
   countdown-subtitle: "<yellow><seconds>s</yellow> <gray>until it returns to the End</gray>"
   # <player> is replaced with the returning keeper's name.
   keeper-returned: "<green><player> returned in time — the Dragon Egg stays where it is.</green>"
+  # Sent only to the owner when they earn a hold reward. <tier> is the reward number.
+  reward-earned: "<gold>You held the Dragon Egg long enough to earn a reward! (reward <tier>)</gold>"
+  # Sent only to the player when they become a Dragonlord.
+  victor-earned: "<gold>You are now a Dragonlord — your prestige cosmetics are unlocked.</gold>"
 
 # If false, BLOCKED_* events are not written to the history log (players are still
 # nudged). Keeps the log readable on servers with very persistent hoppers.
@@ -115,3 +186,13 @@ log-blocks-to-history: true   # default: true
 # ── Advanced ───────────────────────────────────────────────────────────────
 # Blank = auto-detect the first THE_END world. Set a name to force a specific one.
 end-world-name: ""
+
+# How often active hold-time is sampled for rewards and Dragonlord progress. This is
+# only the measuring rate, not the reward timing -- leave it unless you know you need to.
+hold-time:
+  accrual-ticks: 100       # default: 100 (every 5 seconds)
+  # When on, reward and Dragonlord time only build up while the owner is actually with the
+  # egg -- carrying it, or standing within presence-radius of the placed egg block. This
+  # stops someone from walling the egg into a base and farming time while they're elsewhere.
+  require-presence: true   # default: true
+  presence-radius: 16      # default: 16. blocks from the placed egg that count as "with it"

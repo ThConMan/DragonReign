@@ -16,6 +16,12 @@ public final class EggState {
     public long lastActivity;
     public long enforcedClockFloor;   // 0 = none; see EggDataStore.getEnforcedClockFloor
 
+    // Hold-reward ladder for the CURRENT keeper. rewardTier is how many rewards they've
+    // already earned; rewardProgressMillis is active held time banked toward the next one.
+    // Both reset when the egg changes hands (unless reset-on-loss is turned off).
+    public int rewardTier;
+    public long rewardProgressMillis;
+
     public final ConcurrentHashMap<UUID, Long> lastSeen = new ConcurrentHashMap<>();
     public final Set<UUID> pendingErase = ConcurrentHashMap.newKeySet();
 

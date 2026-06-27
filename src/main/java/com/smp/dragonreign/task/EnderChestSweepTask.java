@@ -9,8 +9,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
 /**
- * Feature 3 — a safety net for any path we miss (or eggs squirreled away before the
- * plugin was installed). Pulls dragon eggs out of online players' ender chests and
+ * Feature 3 — a safety net for any path we miss (or eggs hidden in an ender chest
+ * before the plugin was installed). Pulls dragon eggs out of online players' ender chests and
  * hands them back.
  */
 public final class EnderChestSweepTask extends BukkitRunnable {

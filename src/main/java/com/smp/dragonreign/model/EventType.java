@@ -22,6 +22,9 @@ public enum EventType {
     EGG_ERASED("Egg erased", Material.TNT),
     EGG_SPAWNED("Egg spawned", Material.END_PORTAL_FRAME),
     TRANSFER("Transfer", Material.NAME_TAG),
+    REWARD_EARNED("Hold reward earned", Material.GOLD_INGOT),
+    VICTOR_EARNED("Dragonlord earned", Material.DRAGON_BREATH),
+    EGG_RECOVERED("Egg recovered", Material.ELYTRA),
     ADMIN("Admin action", Material.COMMAND_BLOCK);
 
     private final String label;

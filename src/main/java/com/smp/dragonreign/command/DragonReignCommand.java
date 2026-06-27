@@ -100,17 +100,102 @@ public final class DragonReignCommand implements TabExecutor {
                 plugin.reloadEverything();
                 sender.sendMessage(Msg.prefixed(config.getPrefix(), "<green>Configuration reloaded.</green>"));
             }
+            case "cosmetics" -> {
+                if (!sender.hasPermission(Perms.COSMETICS)) {
+                    return true;
+                }
+                if (!(sender instanceof Player player)) {
+                    sender.sendMessage(Msg.prefixed(config.getPrefix(), "<red>Players only.</red>"));
+                    return true;
+                }
+                if (!plugin.victors().isVictor(player)) {
+                    player.sendMessage(Msg.prefixed(config.getPrefix(),
+                            "<red>Only Dragonlords have cosmetics to change.</red>"));
+                    return true;
+                }
+                plugin.cosmeticsGui().open(player);
+            }
+            case "particle" -> toggleCosmetic(sender, true);
+            case "title" -> toggleCosmetic(sender, false);
+            case "victor" -> handleVictor(sender, args);
             case "info" -> showInfo(sender);
             default -> {
                 // Only hint at the syntax for someone who could use it; everyone else gets nothing.
                 if (sender.hasPermission(Perms.ADMIN)) {
                     sender.sendMessage(Msg.prefixed(config.getPrefix(),
                             "<red>Unknown subcommand. Try <white>gui</white>, <white>log</white>, <white>inbox</white>, "
-                                    + "<white>respawn</white>, <white>cancel</white>, <white>reload</white>, or <white>info</white>.</red>"));
+                                    + "<white>respawn</white>, <white>cancel</white>, <white>reload</white>, "
+                                    + "<white>victor</white>, <white>cosmetics</white>, or <white>info</white>.</red>"));
+                } else if (sender.hasPermission(Perms.COSMETICS)) {
+                    sender.sendMessage(Msg.prefixed(config.getPrefix(),
+                            "<red>Unknown subcommand. Try <white>cosmetics</white>, <white>particle</white>, "
+                                    + "<white>title</white>, or <white>info</white>.</red>"));
                 }
             }
         }
         return true;
+    }
+
+    /** Flip the caller's own aura ({@code particle=true}) or title ({@code particle=false}). */
+    private void toggleCosmetic(CommandSender sender, boolean particle) {
+        ConfigManager config = plugin.config();
+        if (!sender.hasPermission(Perms.COSMETICS)) {
+            return;
+        }
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(Msg.prefixed(config.getPrefix(), "<red>Players only.</red>"));
+            return;
+        }
+        if (!plugin.victors().isVictor(player)) {
+            player.sendMessage(Msg.prefixed(config.getPrefix(),
+                    "<red>Only Dragonlords have cosmetics to change.</red>"));
+            return;
+        }
+        UUID id = player.getUniqueId();
+        boolean now;
+        if (particle) {
+            now = !plugin.victors().particleEnabled(id);
+            plugin.victors().setParticleEnabled(id, now);
+        } else {
+            now = !plugin.victors().titleEnabled(id);
+            plugin.victors().setTitleEnabled(id, now);
+        }
+        plugin.saveAsync();
+        player.sendMessage(Msg.prefixed(config.getPrefix(),
+                "<green>" + (particle ? "Particle aura" : "Title") + " turned "
+                        + (now ? "<white>on</white>" : "<white>off</white>") + ".</green>"));
+    }
+
+    /** {@code /dr victor <grant|revoke> <player>} — admin only. */
+    private void handleVictor(CommandSender sender, String[] args) {
+        ConfigManager config = plugin.config();
+        if (!sender.hasPermission(Perms.CMD_VICTOR)) {
+            return;
+        }
+        if (args.length < 3 || (!args[1].equalsIgnoreCase("grant") && !args[1].equalsIgnoreCase("revoke"))) {
+            sender.sendMessage(Msg.prefixed(config.getPrefix(),
+                    "<gray>Usage: <white>/dr victor <grant|revoke> <player></white></gray>"));
+            return;
+        }
+        org.bukkit.OfflinePlayer target = org.bukkit.Bukkit.getPlayerExact(args[2]);
+        if (target == null) {
+            target = org.bukkit.Bukkit.getOfflinePlayerIfCached(args[2]);
+        }
+        if (target == null) {
+            sender.sendMessage(Msg.prefixed(config.getPrefix(), "<red>Never seen a player named "
+                    + Msg.escape(args[2]) + ".</red>"));
+            return;
+        }
+        if (args[1].equalsIgnoreCase("grant")) {
+            plugin.victors().adminGrant(sender, target.getUniqueId());
+            sender.sendMessage(Msg.prefixed(config.getPrefix(),
+                    "<green>Granted Dragonlord to <white>" + Msg.escape(args[2]) + "</white>.</green>"));
+        } else {
+            plugin.victors().adminRevoke(sender, target.getUniqueId());
+            sender.sendMessage(Msg.prefixed(config.getPrefix(),
+                    "<green>Revoked Dragonlord from <white>" + Msg.escape(args[2]) + "</white>.</green>"));
+        }
+        plugin.saveAsync();
     }
 
     /** Show the info readout, but only to someone who holds the (default-true) info node. */
@@ -187,6 +272,12 @@ public final class DragonReignCommand implements TabExecutor {
             if (sender.hasPermission(Perms.RESPAWN)) subs.add("respawn");
             if (sender.hasPermission(Perms.CANCEL)) subs.add("cancel");
             if (sender.hasPermission(Perms.RELOAD)) subs.add("reload");
+            if (sender.hasPermission(Perms.CMD_VICTOR)) subs.add("victor");
+            if (sender.hasPermission(Perms.COSMETICS)) {
+                subs.add("cosmetics");
+                subs.add("particle");
+                subs.add("title");
+            }
 
             String prefix = args[0].toLowerCase();
             List<String> out = new ArrayList<>();
@@ -201,6 +292,28 @@ public final class DragonReignCommand implements TabExecutor {
         if (args.length == 2 && args[0].equalsIgnoreCase("respawn") && sender.hasPermission(Perms.RESPAWN)) {
             if ("force".startsWith(args[1].toLowerCase())) {
                 return List.of("force");
+            }
+        }
+        // `/dr victor <grant|revoke> <player>`
+        if (args[0].equalsIgnoreCase("victor") && sender.hasPermission(Perms.CMD_VICTOR)) {
+            if (args.length == 2) {
+                List<String> out = new ArrayList<>();
+                for (String s : List.of("grant", "revoke")) {
+                    if (s.startsWith(args[1].toLowerCase())) {
+                        out.add(s);
+                    }
+                }
+                return out;
+            }
+            if (args.length == 3) {
+                String p = args[2].toLowerCase();
+                List<String> names = new ArrayList<>();
+                for (Player online : plugin.getServer().getOnlinePlayers()) {
+                    if (online.getName().toLowerCase().startsWith(p)) {
+                        names.add(online.getName());
+                    }
+                }
+                return names;
             }
         }
         return List.of();

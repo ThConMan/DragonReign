@@ -2,7 +2,7 @@
 
 A lightweight Paper plugin that enforces a server's special **Dragon Egg** rules on
 an SMP. There is one conceptual egg, and DragonReign makes sure it can't be hidden,
-duped, hoarded, or lost to an inactive player — while keeping a full audit trail of
+duped, hoarded, or lost to an inactive player — while keeping a full record of
 everything that happens to it.
 
 Built for **Paper / Minecraft 26.1.2** (API level 1.21), Java 21+ bytecode.
@@ -12,9 +12,9 @@ Built for **Paper / Minecraft 26.1.2** (API level 1.21), Java 21+ bytecode.
 ## What it does
 
 The protections apply to **every** `dragon_egg` item and block — not a single
-NBT-tagged "real" egg. That makes the rules impossible to launder by crafting or
+specially-marked "real" egg. That makes the rules impossible to dodge by crafting or
 duping a look-alike. The *tracking* (who owns it, where it sits) follows the
-conceptual single egg and is persisted in `data.yml`.
+conceptual single egg and is saved in `data.yml`.
 
 ### The rules
 
@@ -44,13 +44,42 @@ conceptual single egg and is persisted in `data.yml`.
    alt** of the previous keeper, and alerts staff. It also makes the inactivity clock
    *group-aware*: a ring of alts sharing one connection can't keep the egg alive while
    the real person is gone. IP matching is imperfect, so the default is to **flag**, not
-   enforce. Only salted IP **hashes** are stored, never raw addresses. (See the FAQ.)
-8. **Staff inbox** *(default on)* — a persisted, in-game alert queue for admins: alt/IP
+   enforce. Only scrambled, one-way codes are saved — never real addresses. (See the FAQ.)
+8. **Staff inbox** *(default on)* — a saved, in-game alert queue for admins: alt/IP
    flags, dupe cleanups, respawn countdowns starting/firing, eggs erased. Online admins
    are DM'd immediately; everything is queued for `/dragonreign inbox`.
 9. **History log** *(always on)* — every meaningful event (placed, broken, picked up,
    blocked attempts, sweeps, respawns, countdowns, transfers, admin actions) is appended
    to a capped, persistent log you can browse in-game.
+10. **Egg compass** *(default on)* — players standing near the placed egg see an action-bar
+    arrow pointing toward it, so a hidden egg can always be hunted down. Far from the egg you
+    get a faint "something's near"; closer you get a direction; right on top it says "right
+    here". The arrow is only shown to players within range, and only in the egg's world.
+11. **Hold rewards** *(default on)* — the current owner earns a reward for every stretch of
+    time they actively hold the egg (default every 60 minutes). Each reward is a tier of
+    console commands you configure (give items, money, xp, effects). The owner climbs the
+    ladder while they hold it; the ladder resets when the egg changes hands. Only the owner
+    is told when they earn — there are no server-wide announcements. Time only builds up
+    while the owner is actually with the egg (carrying it or near the placed block), so you
+    can't wall it into a base and farm rewards from elsewhere.
+12. **Staleness respawn** *(default on)* — if the egg sits untouched for `staleness-days`
+    (default 10) it respawns even while the owner is online, so the egg can't be parked
+    forever. Holding it idle does not count as touching it.
+13. **Away check** *(default on)* — reward time and Dragonlord time only build up while the
+    owner is really playing. The owner counts as away if CMI or EssentialsX (when installed)
+    says so, **or** if the built-in check sees no real travel for `idle-seconds` — and that
+    built-in check always runs, so a stationary auto-clicker is caught even when another
+    plugin reports them active. Small repeated motion (an AFK pool, a tiny loop) doesn't count.
+14. **Void safety** *(default on)* — the one egg can never be lost for good. If a dropped egg
+    or a falling egg block ever slips into the void, it is rebuilt on the End fountain and
+    staff get an alert.
+15. **Dragonlord cosmetics** *(default on)* — holding the egg builds up lifetime active
+    hold-time (away time excluded, and it never resets). Past `threshold-hours` (default 168 =
+    7 days) the player permanently becomes a **Dragonlord** and unlocks two cosmetics: a
+    sparkle aura and a chat/tab/nameplate title. The title is published through PlaceholderAPI
+    (`%dragonreign_title%`), so any plugin that reads PlaceholderAPI (TAB, CMI,
+    CustomNameplates, chat-format plugins) can show it. Players toggle their own cosmetics;
+    admins grant or revoke Dragonlord status.
 
 Players with `dragonreign.bypass` ignore all protections.
 
@@ -67,6 +96,10 @@ Players with `dragonreign.bypass` ignore all protections.
 | `/dragonreign respawn force` | Skip the countdown and respawn the egg immediately (admin). |
 | `/dragonreign cancel` | Cancel the active respawn countdown — the egg stays (admin). |
 | `/dragonreign reload` | Reload `config.yml` and reschedule tasks (admin). |
+| `/dragonreign victor <grant\|revoke> <player>` | Grant or revoke Dragonlord status (admin). |
+| `/dragonreign cosmetics` | Open the Dragonlord cosmetics menu (Dragonlords only). |
+| `/dragonreign particle` | Turn your own Dragonlord aura on or off (Dragonlords only). |
+| `/dragonreign title` | Turn your own Dragonlord title on or off (Dragonlords only). |
 | `/dragonreign info` | Public: owner, rule states, countdown status. Admins additionally see the egg's exact location, last-activity, strict-ownership posture, and unread inbox count. |
 | `/giveegg <player>` | Hand the egg you're holding to another online player (transfers ownership). |
 
@@ -90,6 +123,9 @@ its permission does **nothing**: no error, no reply.
 | `dragonreign.command.cancel` | op | `/dr cancel`. |
 | `dragonreign.command.reload` | op | `/dr reload`. |
 | `dragonreign.gui.teleport` | op | Use the teleport-to-egg button in the config GUI. |
+| `dragonreign.command.victor` | op | Grant/revoke Dragonlord status (`/dr victor`). |
+| `dragonreign.command.cosmetics` | everyone | Player cosmetic toggles (`/dr cosmetics`, `particle`, `title`). |
+| `dragonreign.victor` | false | Marks a player as a Dragonlord. Granted automatically at the hold-time threshold; admins can also grant it directly. |
 | `dragonreign.admin` | op | Parent node — grants every `command.*` and `gui.*` node above. |
 
 Every capability is its own node, so you can hand a helper exactly one (e.g. only
@@ -139,6 +175,45 @@ respawn-on-inactivity:
   enabled: true
   inactivity-days: 14
   check-interval-minutes: 5
+  staleness-days: 10         # 0 = off; respawn an untouched egg even with the owner online
+
+compass:
+  enabled: true
+  radius: 16
+  update-ticks: 10
+  show-to-owner: false
+
+rewards:
+  enabled: true
+  interval-minutes: 60
+  reset-on-loss: true
+  tiers:                     # each line is one reward = a list of console commands
+    - ["give %player% diamond 4"]
+    - ["give %player% diamond 8", "xp add %player% 30 levels"]
+    - ["effect give %player% strength 600 1"]
+
+afk:
+  enabled: true
+  idle-seconds: 300
+
+void-safety:
+  enabled: true
+  check-ticks: 20
+
+victor:
+  threshold-hours: 168       # active holding time to become a Dragonlord
+  title: "&6Dragonlord"
+  title-enabled: true
+  particle-enabled: true
+  particle: HAPPY_VILLAGER
+  particle-density: 12
+  particle-interval-ticks: 40
+  luckperms-meta: false      # also write the title as a LuckPerms meta value
+
+hold-time:
+  accrual-ticks: 100         # advanced: how often active hold-time is sampled
+  require-presence: true     # only earn time while carrying the egg or near the placed egg
+  presence-radius: 16        # blocks from the placed egg that count as "with it"
 
 announce:
   enabled: true
@@ -166,7 +241,7 @@ strict-ownership:
   min-receiver-active-days: 7
   check-ip-alts: true
   auto-enforce-ip-links: false
-  max-ip-group: 8            # ignore IP hashes shared by more than N accounts (CGNAT/VPN); 0 = no cap
+  max-ip-group: 8            # ignore connection codes shared by more than N accounts (shared/public connections); 0 = no cap
   ip-hash-salt: ""           # auto-generated on first run; never change or share it
 
 inbox:
@@ -187,6 +262,8 @@ messages:
   countdown-title: "<gradient:#b388ff:#5e2b97>Egg Respawn</gradient>"
   countdown-subtitle: "<yellow><seconds>s</yellow> <gray>until it returns to the End</gray>"
   keeper-returned: "<green><player> returned in time — the Dragon Egg stays where it is.</green>"
+  reward-earned: "<gold>You held the Dragon Egg long enough to earn a reward! (reward <tier>)</gold>"
+  victor-earned: "<gold>You are now a Dragonlord — your prestige cosmetics are unlocked.</gold>"
 
 log-blocks-to-history: true   # false = keep nudges, skip logging blocked attempts
 end-world-name: ""            # blank = auto-detect the first THE_END world
@@ -207,6 +284,30 @@ substituted at send time.
 | `respawn-on-inactivity.enabled` | `true` | Respawn the egg when the keeper goes inactive. |
 | `respawn-on-inactivity.inactivity-days` | `14` | Days of keeper absence before respawn. |
 | `respawn-on-inactivity.check-interval-minutes` | `5` | How often inactivity is checked. |
+| `respawn-on-inactivity.staleness-days` | `10` | Respawn an untouched egg after this many days even with the owner online. `0` = off; must be less than `inactivity-days`. |
+| `compass.enabled` | `true` | Show nearby players an arrow toward the placed egg. |
+| `compass.radius` | `16` | Only players within this many blocks see the arrow. |
+| `compass.update-ticks` | `10` | How often the arrow refreshes (20 ticks = 1 second). |
+| `compass.show-to-owner` | `false` | Also show the arrow to the egg's owner. |
+| `rewards.enabled` | `true` | Reward the owner for active holding time. |
+| `rewards.interval-minutes` | `60` | Active holding time needed for each reward. |
+| `rewards.reset-on-loss` | `true` | Losing the egg resets the owner back to the first reward tier. |
+| `rewards.tiers` | *(see above)* | The reward ladder; each entry is a list of console commands run with `%player%` / `%tier%` substituted. |
+| `afk.enabled` | `true` | Pause reward and Dragonlord time while the owner is away. |
+| `afk.idle-seconds` | `300` | No real travel for this long counts as away (built-in check; small repeated motion doesn't count). |
+| `void-safety.enabled` | `true` | Rescue the egg to the End if it falls into the void. |
+| `void-safety.check-ticks` | `20` | How often the loose egg's height is checked. |
+| `victor.threshold-hours` | `168` | Active holding time to become a Dragonlord. |
+| `victor.title` | `&6Dragonlord` | The Dragonlord title (legacy `&` colour codes). |
+| `victor.title-enabled` | `true` | Master switch for the title. |
+| `victor.particle-enabled` | `true` | Master switch for the aura. |
+| `victor.particle` | `HAPPY_VILLAGER` | Particle type for the aura. |
+| `victor.particle-density` | `12` | Particles per puff. |
+| `victor.particle-interval-ticks` | `40` | How often the aura shows. |
+| `victor.luckperms-meta` | `false` | Also write the title as a LuckPerms meta value (`dragonreign-title`). |
+| `hold-time.accrual-ticks` | `100` | Advanced: how often active hold-time is sampled. |
+| `hold-time.require-presence` | `true` | Only accrue reward/Dragonlord time while the owner is carrying the egg or near the placed egg. |
+| `hold-time.presence-radius` | `16` | Blocks from the placed egg that count as the owner being "with it". |
 | `respawn-countdown.enabled` | `true` | Use a timed contest window instead of an instant respawn. |
 | `respawn-countdown.duration-seconds` | `300` | Length of the countdown. |
 | `respawn-countdown.warn-at-seconds` | `[300,60,30,10,5,4,3,2,1]` | Seconds-remaining marks that broadcast a warning. |
@@ -216,8 +317,8 @@ substituted at send time.
 | `strict-ownership.min-receiver-active-days` | `7` | Receiver idle longer than this → flagged on transfer. |
 | `strict-ownership.check-ip-alts` | `true` | Use IP-link checks and group-aware last-seen. |
 | `strict-ownership.auto-enforce-ip-links` | `false` | If true, an alt hand-off won't reset the respawn timer (pins the inactivity clock to the previous keeper's last activity). |
-| `strict-ownership.max-ip-group` | `8` | Ignore IP hashes shared by more than this many accounts (CGNAT/VPN/shared LAN). `0` = no cap. |
-| `strict-ownership.ip-hash-salt` | *auto* | Auto-generated salt for IP hashing. Never change or share. |
+| `strict-ownership.max-ip-group` | `8` | Ignore connection codes shared by more than this many accounts (shared/public connections like phone networks or VPNs). `0` = no cap. |
+| `strict-ownership.ip-hash-salt` | *auto* | Auto-generated secret used to scramble IPs into codes. Never change or share. |
 | `inbox.enabled` | `true` | Enable the staff alert queue. |
 | `inbox.notify-on-join` | `true` | Tell admins their unread count on join. |
 | `inbox.max-entries` | `200` | Cap on stored alerts (oldest evicted). |
@@ -229,25 +330,41 @@ substituted at send time.
 
 ### Data files
 
-`config.yml` holds settings. State lives in three separate files so a config reload
-never clobbers it: `data.yml` (egg owner/location + history), `players.yml` (salted
-login-IP hashes + last-login per player), and `inbox.yml` (the alert queue). All three
-are written atomically (temp file then swap).
+`config.yml` holds settings. State lives in separate files so a config reload never
+clobbers it: `data.yml` (egg owner/location + history + the current reward tier),
+`players.yml` (scrambled login-IP codes + last-login per player), `inbox.yml` (the alert
+queue), and `victors.yml` (lifetime hold-time, Dragonlord status, and per-player cosmetic
+toggles). All are written atomically (temp file then swap).
+
+### Optional plugin integrations
+
+DragonReign runs fine on its own. These plugins, if present, are used automatically and
+are never required:
+
+- **PlaceholderAPI** — registers a `dragonreign` expansion: `%dragonreign_title%` (a
+  Dragonlord's title, or empty), `%dragonreign_is_victor%` (`true`/`false`), and
+  `%dragonreign_reward_tier%` (the egg owner's current reward tier). This is how the title
+  reaches nameplates, chat, and the tab list.
+- **LuckPerms** — optional: when `victor.luckperms-meta` is on, a Dragonlord's title is also
+  written as a LuckPerms meta value (`dragonreign-title`) for LuckPerms-based prefixes. Off
+  by default so it won't touch existing prefixes.
+- **CMI / EssentialsX** — if installed, their away (AFK) status is used so reward and
+  Dragonlord time pause correctly. Without either, a built-in movement check is used.
 
 ---
 
 ## FAQ
 
 **Does this store my players' IP addresses?**
-No. When strict ownership's IP checks are on, the plugin reads the login IP only to
-compute a **salted SHA-256 hash**, and stores *only that hash* in `players.yml`. The raw
-address is never written to disk. The salt is generated randomly on first run, so the
-hashes can't be reversed with a rainbow table and aren't comparable across servers. If
+No. When strict ownership's IP checks are on, the plugin reads the login IP only to turn
+it into a scrambled, one-way code, and saves *only that code* in `players.yml`. The real
+address is never written to disk. The scrambling secret is made randomly on first run, so
+the codes can't be turned back into addresses and don't match across servers. If
 you find the feature unnecessary, leave `strict-ownership.enabled: false` (the default).
 
 **Why does strict ownership only *flag* alts instead of blocking them?**
 Because IP matching is genuinely unreliable. People sharing a house, a dorm, school or
-office Wi-Fi, a mobile carrier behind CGNAT, or the same VPN exit node will all look
+office Wi-Fi, a phone network, or the same VPN will all look
 "linked" despite being different people. Auto-blocking those would punish innocent
 players. So the safe default is to post a staff-inbox alert and let a human judge. If you
 understand the trade-off you can set `auto-enforce-ip-links: true`, which stops an
@@ -261,17 +378,17 @@ Two big ones, both inherent to IP matching — know them before you rely on it:
 - **Off-network alts evade everything.** An alt on a *different* connection (phone hotspot,
   a VPN, a second house) is not IP-linked, so handing it the egg is treated as a normal
   transfer and resets the inactivity clock. Strict ownership cannot catch this; it only
-  sees same-IP relationships. DragonReign does add a couple of heuristics that don't rely
+  sees same-IP relationships. DragonReign does add a couple of extra checks that don't rely
   on IP — it flags a transfer to an account that was **dormant** before the hand-off, and
   flags a **rapid back-and-forth juggle** (the egg bounced straight back between the same
   two accounts within 24h) — but a patient off-network juggle will still slip through. Treat
   strict ownership as a tripwire, not a wall.
 - **Shared IPs can *extend* egg life, not just shorten it.** Because group-aware last-seen
   takes the newest login across an IP group, an inactive keeper who logs in once through a
-  busy CGNAT/mobile/VPN/shared-LAN endpoint would otherwise inherit strangers' fresh logins
-  forever and become immortal. `max-ip-group` (default 8) defends against this by ignoring
-  any IP hash shared by more than that many distinct accounts — a hallmark of a public
-  endpoint rather than a real alt ring. Lower it on a server where players are mostly on
+  busy shared connection (phone network, VPN, or school/office Wi-Fi) would otherwise inherit
+  strangers' recent logins forever and never lose the egg. `max-ip-group` (default 8) defends
+  against this by ignoring any connection code shared by more than that many accounts — a sign
+  of a public/shared connection rather than a real alt ring. Lower it on a server where players are mostly on
   unique connections; raise it (or set `0`) only if you understand the immortality risk.
 
 **What's the "proxy hold" trade-off with the countdown?**
@@ -288,13 +405,13 @@ aborts the countdown by returning. An unrelated player joining does nothing to i
 **The countdown disappeared after a restart — is that a bug?**
 No. The countdown is in-memory by design. After a restart the inactivity check simply
 re-evaluates on its next tick and starts a fresh countdown if the keeper is still gone.
-There's no persisted countdown state to corrupt.
+There's no saved countdown state to corrupt.
 
 ---
 
 ## Install
 
-1. Drop `DragonReign-1.0.0.jar` into your server's `plugins/` folder.
+1. Drop `DragonReign-1.2.0.jar` into your server's `plugins/` folder.
 2. Start (or `/reload`) the server. `config.yml` is generated on first run (including a
    fresh random `ip-hash-salt`); `data.yml`, `players.yml`, and `inbox.yml` are created
    and maintained automatically.
@@ -316,7 +433,7 @@ You need JDK 21+ and a Paper (or Spigot) server jar for 1.21+ to compile against
 bash build.sh
 ```
 
-It compiles with `--release 21` and produces `build/DragonReign-1.0.0.jar`. A green
+It compiles with `--release 21` and produces `build/DragonReign-1.2.0.jar`. A green
 build prints `BUILD OK`.
 
 ---
@@ -340,7 +457,7 @@ build prints `BUILD OK`.
 - Only one respawn countdown runs at a time; a `firing` guard makes the natural
   zero-tick and an admin `respawn force` mutually exclusive, so the egg can never respawn
   twice from the same countdown.
-- The three persisted files each save through one atomic temp-then-swap helper with
+- The three saved files each save through one atomic temp-then-swap helper with
   per-file locking, so concurrent or crashing writers can't leave a half-written file.
   Snapshots are taken on the main thread and drained by a single-thread writer in
   submission order, so a slow earlier save can never be overtaken and persist stale state.

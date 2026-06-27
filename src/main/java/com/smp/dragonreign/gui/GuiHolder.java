@@ -9,7 +9,7 @@ import org.bukkit.inventory.InventoryHolder;
  */
 public final class GuiHolder implements InventoryHolder {
 
-    public enum Type { CONFIG, HISTORY, INBOX }
+    public enum Type { CONFIG, HISTORY, INBOX, COSMETICS }
 
     private final Type type;
     private final int page;
