@@ -473,7 +473,7 @@ public final class ConfigManager {
     }
 
     public String getVictorParticle() {
-        return cfg().getString("victor.particle", "HAPPY_VILLAGER");
+        return cfg().getString("victor.particle", "PORTAL");
     }
 
     public int getVictorParticleDensity() {

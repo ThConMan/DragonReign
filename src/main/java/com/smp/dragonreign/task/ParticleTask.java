@@ -57,6 +57,6 @@ public final class ParticleTask extends BukkitRunnable {
                 // fall through to the default
             }
         }
-        return Particle.HAPPY_VILLAGER;
+        return Particle.PORTAL;
     }
 }

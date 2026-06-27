@@ -88,13 +88,15 @@ inbox:
 announce:
   enabled: true            # default: true
   # Chat broadcast lines (MiniMessage formatting).
-  chat:                    # default: the two lines below
-    - "<dark_purple>The Dragon Egg has returned to the End!</dark_purple>"
-    - "<gray>Its last keeper vanished. Claim it if you dare.</gray>"
+  chat:                    # default: the lines below (MiniMessage — gradients, <bold>, etc.)
+    - "<dark_purple><strikethrough>                                                  </strikethrough></dark_purple>"
+    - "<bold><gradient:#9D4EDD:#D9B3FF:#F7F3E9>✦  THE DRAGON EGG RETURNS  ✦</gradient></bold>"
+    - "<gray>Its last keeper vanished into the void. <white><bold>Claim it</bold></white> <gray>if you dare.</gray>"
+    - "<dark_purple><strikethrough>                                                  </strikethrough></dark_purple>"
   # Big screen title shown to everyone.
   title:
-    title: "<gradient:#5e2b97:#b388ff>The Egg Reigns Again</gradient>"   # default shown
-    subtitle: "<gray>A new keeper is needed</gray>"                       # default shown
+    title: "<bold><gradient:#7A1FA2:#B388FF:#F7F3E9>✦ The Egg Reigns Again ✦</gradient></bold>"   # default shown
+    subtitle: "<italic><gradient:#D9B3FF:#9D4EDD>A new keeper is needed</gradient></italic>"        # default shown
     fade-in-ticks: 10      # default: 10
     stay-ticks: 70         # default: 70
     fade-out-ticks: 20     # default: 20
@@ -144,10 +146,10 @@ void-safety:
 # turn their own cosmetics on or off; admins can grant or revoke Dragonlord status.
 victor:
   threshold-hours: 168     # default: 168 (7 days of active holding) to become a Dragonlord
-  title: "&6Dragonlord"    # default shown. the title text (use & colour codes)
+  title: "&x&9&D&4&E&D&D&lD&x&A&7&6&0&D&E&lr&x&B&1&7&3&E&0&la&x&B&B&8&5&E&1&lg&x&C&5&9&7&E&2&lo&x&C&F&A&A&E&4&ln&x&D&9&B&C&E&5&ll&x&E&3&C&E&E&6&lo&x&E&D&E&1&E&8&lr&x&F&7&F&3&E&9&ld"    # ender-purple -> off-white bold gradient (pre-rendered hex so TAB/CMI/chat all display it)
   title-enabled: true      # default: true. master switch for the title
   particle-enabled: true   # default: true. master switch for the aura
-  particle: HAPPY_VILLAGER # default shown. particle type for the aura
+  particle: PORTAL         # default shown. particle type for the aura (PORTAL = purple enderman-style swirl)
   particle-density: 12     # default: 12. how many particles per puff
   particle-interval-ticks: 40   # default: 40 (every 2 seconds). how often the aura shows
   # Optional: also write the title as a LuckPerms meta value ("dragonreign-title") so
@@ -162,22 +164,22 @@ history:
 # All MiniMessage. The prefix is prepended to most plugin messages. Blocked-action
 # messages always explain WHY the action was stopped.
 messages:
-  prefix: "<dark_purple>[DragonReign]</dark_purple> "
+  prefix: "<bold><gradient:#7A1FA2:#B388FF>[DragonReign]</gradient></bold> "
   blocked-container: "<red>The Dragon Egg can't go in there.</red>"
   blocked-bundle: "<red>The Dragon Egg can't go in a bundle.</red>"
   blocked-drop: "<red>You can't drop the Dragon Egg.</red>"
   # Countdown messages. <seconds> is replaced with the number of seconds remaining.
-  countdown-started: "<gold>The egg's keeper has vanished — it returns to the End in <seconds>s unless they return!</gold>"
-  countdown-warn: "<yellow>The Dragon Egg respawns in <white><seconds>s</white> — get to the End!</yellow>"
+  countdown-started: "<gradient:#FF6A00:#FFD700><bold>The Egg's keeper has vanished!</bold></gradient> <gray>It returns to The End in <white><bold><seconds>s</bold></white> <gray>unless they return.</gray>"
+  countdown-warn: "<gradient:#FFD700:#FF4E50><bold>The Dragon Egg respawns in <seconds>s!</bold></gradient> <gray>Race to The End!</gray>"
   # On-screen title + subtitle shown at each countdown warn mark. <seconds> is substituted.
-  countdown-title: "<gradient:#b388ff:#5e2b97>Egg Respawn</gradient>"
-  countdown-subtitle: "<yellow><seconds>s</yellow> <gray>until it returns to the End</gray>"
+  countdown-title: "<bold><gradient:#FF4E50:#FF6A00:#FFD700>❰ EGG RESPAWN ❱</gradient></bold>"
+  countdown-subtitle: "<bold><gradient:#FFD700:#FFFFFF><seconds></gradient></bold> <gray>until it returns to The End</gray>"
   # <player> is replaced with the returning keeper's name.
-  keeper-returned: "<green><player> returned in time — the Dragon Egg stays where it is.</green>"
+  keeper-returned: "<gradient:#00C853:#B9F6CA><bold>✦ <player> returned in time</bold></gradient> <gray>— the Dragon Egg stays put.</gray>"
   # Sent only to the owner when they earn a hold reward. <tier> is the reward number.
-  reward-earned: "<gold>You held the Dragon Egg long enough to earn a reward! (reward <tier>)</gold>"
+  reward-earned: "<gradient:#FFD700:#FFF8E1><bold>✦ Hold Reward</bold></gradient> <gray>— you held the Dragon Egg long enough. <white>Reward <tier></white> <gray>granted.</gray>"
   # Sent only to the player when they become a Dragonlord.
-  victor-earned: "<gold>You are now a Dragonlord — your prestige cosmetics are unlocked.</gold>"
+  victor-earned: "<bold><gradient:#9D4EDD:#F7F3E9>✦ You are now a DRAGONLORD ✦</gradient></bold> <gray>Your prestige cosmetics are unlocked.</gray>"
 
 # If false, BLOCKED_* events are not written to the history log (players are still
 # nudged). Keeps the log readable on servers with very persistent hoppers.

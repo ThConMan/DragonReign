@@ -61,8 +61,10 @@ public final class DragonReignExpansion extends PlaceholderExpansion {
                 }
                 UUID uuid = player.getUniqueId();
                 boolean victor = isVictor(player);
-                if (victor && plugin.victors().titleEnabled(uuid)) {
-                    return plugin.victors().plainTitle();
+                if (victor && plugin.config().isVictorTitleEnabled() && plugin.victors().titleEnabled(uuid)) {
+                    // Trailing space so it slots cleanly between a rank prefix and the name
+                    // (e.g. "[Rank] Dragonlord Name"); empty for non-victors keeps spacing tidy.
+                    return plugin.victors().plainTitle() + " ";
                 }
                 return "";
             }
