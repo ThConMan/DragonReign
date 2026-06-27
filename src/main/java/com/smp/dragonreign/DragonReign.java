@@ -76,6 +76,10 @@ public final class DragonReign extends JavaPlugin {
     private CosmeticsGui cosmeticsGui;
     private VoidGuardian voidGuardian;
 
+    // Last time (epoch millis) each victor dealt or took damage — drives the aura's combat
+    // reactivity. Capped/transient; entries are only read against a short recency window.
+    private final java.util.Map<java.util.UUID, Long> combatTimes = new java.util.concurrent.ConcurrentHashMap<>();
+
     private BukkitTask inactivityTask;
     private BukkitTask sweepTask;
     private BukkitTask autosaveTask;
@@ -138,6 +142,7 @@ public final class DragonReign extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new EggTrackingListener(this), this);
         getServer().getPluginManager().registerEvents(new GuiListener(this), this);
         getServer().getPluginManager().registerEvents(new com.smp.dragonreign.listener.ChatTitleListener(this), this);
+        getServer().getPluginManager().registerEvents(new com.smp.dragonreign.listener.CombatParticleListener(this), this);
 
         this.voidGuardian = new VoidGuardian(this, new RespawnSequence(this));
         getServer().getPluginManager().registerEvents(voidGuardian, this);
@@ -385,6 +390,73 @@ public final class DragonReign extends JavaPlugin {
 
     public VictorManager victors() {
         return victors;
+    }
+
+    /** Record that a victor just dealt or took damage (drives the aura's combat reactivity). */
+    public void markCombat(java.util.UUID uuid) {
+        if (uuid != null) {
+            combatTimes.put(uuid, System.currentTimeMillis());
+        }
+    }
+
+    /** Milliseconds since a player was last in combat, or a huge value if never/long ago. */
+    public long combatAgeMillis(java.util.UUID uuid) {
+        Long t = uuid != null ? combatTimes.get(uuid) : null;
+        return t == null ? Long.MAX_VALUE : System.currentTimeMillis() - t;
+    }
+
+    /** Play the one-time coronation flourish for a newly-minted Dragonlord. */
+    public void playCoronation(org.bukkit.entity.Player player) {
+        if (player != null && config.isVictorCoronationEnabled()) {
+            com.smp.dragonreign.task.CoronationEffect.play(this, player);
+        }
+    }
+
+    // ── Reset timers (surfaced to players via /dr info and the PlaceholderAPI expansion) ──
+    // All return -1 when the timer isn't ticking (respawn off, no owner, or staleness disabled).
+
+    /** Millis until the owner's inactivity triggers a respawn; resets whenever they're seen. */
+    public long inactivityRemainingMillis() {
+        if (!config.isRespawnEnabled()) {
+            return -1L;
+        }
+        java.util.UUID owner = store.getOwner();
+        if (owner == null) {
+            return -1L;
+        }
+        long now = System.currentTimeMillis();
+        long lastSeen = ownership.groupLastSeen(owner, now);
+        if (lastSeen <= 0) {
+            lastSeen = now;
+        }
+        long threshold = TimeUnit.DAYS.toMillis(config.getInactivityDays());
+        return Math.max(0L, threshold - (now - lastSeen));
+    }
+
+    /** Millis until the egg goes stale (untouched too long) and respawns; -1 if staleness is off. */
+    public long stalenessRemainingMillis() {
+        if (!config.isRespawnEnabled() || store.getOwner() == null) {
+            return -1L;
+        }
+        int days = config.getStalenessDays();
+        if (days <= 0) {
+            return -1L;
+        }
+        long now = System.currentTimeMillis();
+        return Math.max(0L, TimeUnit.DAYS.toMillis(days) - (now - store.getLastActivity()));
+    }
+
+    /** Millis until the egg resets for ANY reason — the sooner of inactivity and staleness. */
+    public long resetRemainingMillis() {
+        long a = inactivityRemainingMillis();
+        long b = stalenessRemainingMillis();
+        if (a < 0) {
+            return b;
+        }
+        if (b < 0) {
+            return a;
+        }
+        return Math.min(a, b);
     }
 
     public LuckPermsHook luckPerms() {

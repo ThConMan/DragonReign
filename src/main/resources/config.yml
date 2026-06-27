@@ -136,7 +136,10 @@ afk:
 # slips into the void, it's rebuilt on the End fountain and staff get an alert.
 void-safety:
   enabled: true            # default: true
-  check-ticks: 20          # default: 20 (about once a second). how often the loose egg is checked.
+  fireproof: true          # default: true. a loose (dropped/falling) egg is immune to fire, lava,
+                           # cactus and explosions, and floats out of lava/water instead of sinking.
+                           # The void still removes it (then it respawns at the End).
+  check-ticks: 4           # default: 4 (~5x/second). how often the loose egg is checked (void + buoyancy).
                            # capped at 20: a wider gap could let a falling egg cross into the void unseen
 
 # ── Dragonlord (victor) cosmetics ──────────────────────────────────────────
@@ -149,9 +152,40 @@ victor:
   title: "&x&9&D&4&E&D&D&lD&x&A&7&6&0&D&E&lr&x&B&1&7&3&E&0&la&x&B&B&8&5&E&1&lg&x&C&5&9&7&E&2&lo&x&C&F&A&A&E&4&ln&x&D&9&B&C&E&5&ll&x&E&3&C&E&E&6&lo&x&E&D&E&1&E&8&lr&x&F&7&F&3&E&9&ld"    # ender-purple -> off-white bold gradient (pre-rendered hex so TAB/CMI/chat all display it)
   title-enabled: true      # default: true. master switch for the title
   particle-enabled: true   # default: true. master switch for the aura
-  particle: PORTAL         # default shown. particle type for the aura (PORTAL = purple enderman-style swirl)
-  particle-density: 12     # default: 12. how many particles per puff
-  particle-interval-ticks: 40   # default: 40 (every 2 seconds). how often the aura shows
+  # The Dragonlord aura is layered: a swarm of wandering SPIRITS drifting around the player
+  # (the showpiece), an engulfing VORTEX up the body, a GROUND spiral sigil, and fire embers.
+  # The player's forward eye line stays carved out so none of it blocks their view in PvP.
+  particle: DUST_COLOR_TRANSITION # holds a TIGHT knot + shimmers colour. PORTAL only makes a cloud
+  particle-motion: still   # only affects PORTAL/non-dust particles: still | inward | outward | up | swirl
+  particle-motion-speed: 0.5 # drift speed for the motion above (ignored when 'still')
+  aura-color: '#9D4EDD'    # gradient START colour (ender purple)
+  aura-color-2: '#4ED9FF'  # gradient END colour (spectral cyan)
+  spirit-size: 0.45        # default: 0.45. size of the spirit-ball motes (small = tight knot, not blinding)
+  aura-size: 0.6           # default: 0.6. size of the ambient vortex/ground motes
+  view-clear-radius: 2.4   # default: 2.4. blocks of clear space around YOUR view at face height
+                           #   (bigger = clearer first-person, less aura hugging you)
+  particle-density: 5      # default: 5. scales the vortex/ground detail (higher = denser)
+  particle-interval-ticks: 2    # default: 2 (~10x/second). how often the aura refreshes; low = smooth
+  orbit-enabled: true      # default: true. the wandering spirit-wisps that drift around the player
+  orbit-count: 7           # default: 7. how many spirits (each finds its own path; max 24)
+  vortex-enabled: false    # default: false. rising column of energy wrapping the body
+  ground-enabled: false    # default: false. spinning spiral sigil on the floor
+  wings-enabled: false     # default: false. flapping dragon wings — off, they're overused
+  # Subtle fire embers that drift up and fade around the Dragonlord, kept low and sparse.
+  ember-enabled: true      # default: true. master switch for the ember shimmer
+  ember-particle: SOUL_FIRE_FLAME # default shown. blue soul-fire (mixed 50/50 with ember-particle-2)
+  ember-particle-2: FLAME  # default shown. red fire, randomly mixed with the blue. set same as above to disable mix
+  ember-count: 2           # default: 2. fire motes per cycle around the body (raise for more fire)
+  livewire-intensity: 1.0  # default: 1.0. how violently spirits occasionally surge/crackle (0 = calm)
+  combat-reactivity: true  # default: true. aura surges harder when the holder sprints/fights/is hurt
+  arcs-enabled: true       # default: true. occasional lightning arcs crackle between nearby balls
+  coronation-enabled: true # default: true. one-time implode+bloom flourish when becoming a Dragonlord
+  surge-sound: false       # default: false. soft electric crackle when a ball surges (off — got annoying)
+  # A small burst when a Dragonlord lands a hit (melee or their own arrow). Kept tiny on
+  # purpose — it fires every hit, so lag matters more than spectacle.
+  hit-enabled: true        # default: true. particle burst on a Dragonlord's hits
+  hit-particle: PORTAL     # default shown. enderman-style burst (matches the aura)
+  hit-count: 10            # default: 10. particles per hit — keep low to stay lag-friendly
   # Optional: also write the title as a LuckPerms meta value ("dragonreign-title") so
   # LuckPerms-based prefixes can use it. Off by default so it won't touch existing prefixes.
   luckperms-meta: false    # default: false
@@ -164,7 +198,8 @@ victor:
 # name; %...% are PlaceholderAPI placeholders (e.g. the LuckPerms prefix).
 chat:
   enabled: false           # default: false. turn on if your chat plugin doesn't show the title
-  format: "%luckperms_prefix%{title} {name}%luckperms_suffix%&8: &f"
+  # &r&f&l before {name} keeps the name bold white so the title's gradient doesn't recolour it.
+  format: "%luckperms_prefix%{title} &r&f&l{name}%luckperms_suffix%&8: &f"
 
 # ── Bookkeeping ────────────────────────────────────────────────────────────
 history:

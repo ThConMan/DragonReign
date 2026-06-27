@@ -19,6 +19,13 @@ import java.util.UUID;
  *       their title turned on; empty otherwise.</li>
  *   <li>{@code %dragonreign_is_victor%} — {@code true} / {@code false}.</li>
  *   <li>{@code %dragonreign_reward_tier%} — the egg owner's current reward tier (else 0).</li>
+ *   <li>{@code %dragonreign_owner%} — the egg holder's name, or {@code none}.</li>
+ *   <li>{@code %dragonreign_has_owner%} — {@code true} / {@code false}.</li>
+ *   <li>{@code %dragonreign_reset_in%} — friendly time until the egg next resets ("5d 3h"), or "—".</li>
+ *   <li>{@code %dragonreign_reset_seconds%} — raw seconds until reset, or -1 (for scoreboards/math).</li>
+ *   <li>{@code %dragonreign_inactivity_in%} / {@code %dragonreign_staleness_in%} — the two timers separately.</li>
+ *   <li>{@code %dragonreign_countdown%} — seconds left in an active respawn countdown (0 if none).</li>
+ *   <li>{@code %dragonreign_countdown_active%} — {@code true} / {@code false}.</li>
  * </ul>
  */
 public final class DragonReignExpansion extends PlaceholderExpansion {
@@ -64,7 +71,12 @@ public final class DragonReignExpansion extends PlaceholderExpansion {
                 if (victor && plugin.config().isVictorTitleEnabled() && plugin.victors().titleEnabled(uuid)) {
                     // Trailing space so it slots cleanly between a rank prefix and the name
                     // (e.g. "[Rank] Dragonlord Name"); empty for non-victors keeps spacing tidy.
-                    return plugin.victors().plainTitle() + " ";
+                    // End with reset + white + bold so the title's gradient never bleeds into
+                    // the player's name — names stay their normal bold white.
+                    return plugin.victors().plainTitle() + " "
+                            + org.bukkit.ChatColor.RESET
+                            + org.bukkit.ChatColor.WHITE
+                            + org.bukkit.ChatColor.BOLD;
                 }
                 return "";
             }
@@ -77,6 +89,34 @@ public final class DragonReignExpansion extends PlaceholderExpansion {
                     return Integer.toString(plugin.store().getRewardTier());
                 }
                 return "0";
+            }
+            case "owner" -> {
+                UUID owner = plugin.store().getOwner();
+                return owner == null ? "none" : com.smp.dragonreign.util.Players.name(owner);
+            }
+            case "has_owner" -> {
+                return Boolean.toString(plugin.store().getOwner() != null);
+            }
+            case "reset_in" -> {
+                // Friendly time until the egg next resets (inactivity OR staleness, whichever's sooner).
+                return com.smp.dragonreign.util.Times.human(plugin.resetRemainingMillis());
+            }
+            case "reset_seconds" -> {
+                long ms = plugin.resetRemainingMillis();
+                return Long.toString(ms < 0 ? -1 : ms / 1000L);
+            }
+            case "inactivity_in" -> {
+                return com.smp.dragonreign.util.Times.human(plugin.inactivityRemainingMillis());
+            }
+            case "staleness_in" -> {
+                return com.smp.dragonreign.util.Times.human(plugin.stalenessRemainingMillis());
+            }
+            case "countdown" -> {
+                // Seconds left in an ACTIVE respawn countdown (the imminent one), or 0 if none.
+                return Integer.toString(Math.max(0, plugin.countdown().secondsLeft()));
+            }
+            case "countdown_active" -> {
+                return Boolean.toString(plugin.countdown().secondsLeft() > 0);
             }
             default -> {
                 return null; // not ours — let PlaceholderAPI handle it

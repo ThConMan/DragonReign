@@ -16,42 +16,43 @@ final class GuideBook {
     private GuideBook() {
     }
 
-    // MiniMessage pages. Kept short and plain so they read cleanly on a book page.
+    // MiniMessage pages. Book pages are cream parchment, so everything here uses DARK,
+    // high-contrast colours (black body, dark-purple accents, dark-red warnings, dark-green
+    // positives) — light colours like white/gray/yellow are unreadable on a book.
     private static final List<String> PAGES = List.of(
-        "<bold><gradient:#9D4EDD:#F3ECFF>The Dragon Egg</gradient></bold>\n\n"
-            + "<gray>One egg. The whole server wants it.\n\n"
-            + "This little book explains how it works — and how to claim it.</gray>\n\n"
+        "<bold><gradient:#3D1466:#7B2FB5>The Dragon Egg</gradient></bold>\n\n"
+            + "<black>One egg. The whole server wants it.\n\n"
+            + "This little book explains how it works — and how to claim it.</black>\n\n"
             + "<dark_gray>» turn the page «</dark_gray>",
 
-        "<bold><#9D4EDD>The Rules</#9D4EDD></bold>\n\n"
-            + "<gray>The egg can only ever be:</gray>\n"
-            + "<white>• in your inventory\n• placed as a block</white>\n\n"
-            + "<gray>It <red>can't</red> go in a chest, ender chest, bundle, or hopper — and you <red>can't</red> drop it.</gray>",
+        "<bold><dark_purple>The Rules</dark_purple></bold>\n\n"
+            + "<black>The egg can't be locked away — it <dark_red>won't go into</dark_red> a chest, ender chest, bundle, hopper, or item frame.</black>\n\n"
+            + "<black>Carry it, place it, or drop it — it always stays <dark_purple>out in the open</dark_purple> where someone can grab it.</black>",
 
-        "<bold><#9D4EDD>It Comes Back</#9D4EDD></bold>\n\n"
-            + "<gray>If the holder goes <yellow>inactive</yellow>, or the egg sits untouched too long, it <white>respawns at the End</white>.\n\n"
-            + "<gold>A countdown warns everyone first</gold> — so race to the End!</gray>",
+        "<bold><dark_purple>It Comes Back</dark_purple></bold>\n\n"
+            + "<black>If the holder goes <dark_red>inactive</dark_red>, or the egg sits untouched too long, it <dark_purple>respawns at the End</dark_purple>.\n\n"
+            + "<dark_red>A countdown warns everyone first</dark_red> — so race to the End!</black>",
 
-        "<bold><#9D4EDD>Hunt It Down</#9D4EDD></bold>\n\n"
-            + "<gray>Get near a placed egg and a <white>compass arrow</white> shows in your action bar.\n\n"
-            + "It runs <green>warmer</green> the closer you get. Even a hidden egg can be found.</gray>",
+        "<bold><dark_purple>Hunt It Down</dark_purple></bold>\n\n"
+            + "<black>Get near a placed egg and a <dark_purple>compass arrow</dark_purple> shows in your action bar.\n\n"
+            + "It runs <dark_green>warmer</dark_green> the closer you get. Even a hidden egg can be found.</black>",
 
-        "<bold><#9D4EDD>Rewards</#9D4EDD></bold>\n\n"
-            + "<gray>Hold the egg and earn <gold>rewards</gold> over time — they grow the longer you keep it.\n\n"
-            + "<yellow>You must be actually playing</yellow> — no AFK farming. Lose the egg, lose the streak.</gray>",
+        "<bold><dark_purple>Rewards</dark_purple></bold>\n\n"
+            + "<black>Hold the egg and earn <dark_green>rewards</dark_green> over time — they grow the longer you keep it.\n\n"
+            + "<dark_red>You must be actually playing</dark_red> — no AFK farming. Lose the egg, lose the streak.</black>",
 
-        "<bold><gradient:#9D4EDD:#F3ECFF>Dragonlord</gradient></bold>\n\n"
-            + "<gray>Hold the egg long enough and you become a <bold><#C9A3FF>Dragonlord</#C9A3FF></bold> — for good.\n\n"
-            + "You earn a glowing <light_purple>aura</light_purple> and a title beside your name.</gray>",
+        "<bold><gradient:#3D1466:#7B2FB5>Dragonlord</gradient></bold>\n\n"
+            + "<black>Hold the egg long enough and you become a <bold><dark_purple>Dragonlord</dark_purple></bold> — for good.\n\n"
+            + "You earn a glowing <dark_purple>aura</dark_purple> and a title beside your name.</black>",
 
-        "<bold><#9D4EDD>Your Commands</#9D4EDD></bold>\n\n"
-            + "<white>/giveegg <name></white> <gray>- hand it over</gray>\n"
-            + "<white>/dr info</white> <gray>- who holds it</gray>\n"
-            + "<white>/dr title</white> <gray>- toggle title</gray>\n"
-            + "<white>/dr particle</white> <gray>- toggle aura</gray>",
+        "<bold><dark_purple>Your Commands</dark_purple></bold>\n\n"
+            + "<dark_purple>/giveegg <name></dark_purple> <black>- hand it over</black>\n"
+            + "<dark_purple>/dr info</dark_purple> <black>- who holds it</black>\n"
+            + "<dark_purple>/dr title</dark_purple> <black>- toggle title</black>\n"
+            + "<dark_purple>/dr particle</dark_purple> <black>- toggle aura</black>",
 
-        "<bold><gradient:#9D4EDD:#F3ECFF>Good luck.</gradient></bold>\n\n"
-            + "<gray>Claim the egg.\nDefend it.\nBecome the Dragonlord.</gray>\n\n"
+        "<bold><gradient:#3D1466:#7B2FB5>Good luck.</gradient></bold>\n\n"
+            + "<black>Claim the egg.\nDefend it.\nBecome the Dragonlord.</black>\n\n"
             + "<dark_gray>The egg is under watch.</dark_gray>"
     );
 

@@ -84,6 +84,9 @@ public final class VictorManager {
                 name + " became a Dragonlord (reached the hold-time threshold)");
         plugin.inbox().post(Severity.INFO, "New Dragonlord",
                 name + " held the egg long enough to become a Dragonlord.", uuid);
+        if (online != null) {
+            plugin.playCoronation(online); // the crowning flourish
+        }
         // Push the title to LuckPerms if that hook is on and they have it toggled on.
         if (titleEnabled(uuid)) {
             plugin.luckPerms().setTitle(uuid, plainTitle());
@@ -97,7 +100,12 @@ public final class VictorManager {
         return uuid != null && victors.contains(uuid);
     }
 
-    /** Set membership OR the dragonreign.victor permission (admins can grant via perms). */
+    /**
+     * Set membership OR an explicitly-assigned {@code dragonreign.victor} permission.
+     * The node is intentionally left unregistered in plugin.yml (see the comment there),
+     * so a staff member's '*' or a plain OP does NOT satisfy this — only an explicit grant,
+     * the earned hold-time threshold, or {@code /dr victor grant} makes someone a Dragonlord.
+     */
     public boolean isVictor(Player player) {
         return player != null && (victors.contains(player.getUniqueId())
                 || player.hasPermission(Perms.VICTOR));
@@ -151,6 +159,7 @@ public final class VictorManager {
             if (online != null) {
                 online.sendMessage(Msg.prefixed(plugin.config().getPrefix(),
                         plugin.config().getVictorEarnedMessage()));
+                plugin.playCoronation(online); // the crowning flourish
             }
             if (titleEnabled(uuid)) {
                 plugin.luckPerms().setTitle(uuid, plainTitle());
