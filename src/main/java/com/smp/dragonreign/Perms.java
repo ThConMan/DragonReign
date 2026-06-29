@@ -36,6 +36,8 @@ public final class Perms {
     public static final String COSMETICS = "dragonreign.command.cosmetics";
     /** Get the in-game guide book (/dr guide). Default true. */
     public static final String GUIDE = "dragonreign.command.guide";
+    /** Get the in-game hold-rewards book (/dr rewards). Default true. */
+    public static final String REWARDS = "dragonreign.command.rewards";
 
     /**
      * Marks a player as a Dragonlord (victor). Earned automatically at the hold-time

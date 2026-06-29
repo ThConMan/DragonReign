@@ -412,6 +412,61 @@ public final class ConfigManager {
                 "<gold>You held the Dragon Egg long enough to earn a reward! (reward <tier>)</gold>");
     }
 
+    // ── Hold-rewards book (/dr rewards) ───────────────────────────────────────
+    // A colored written book that explains what holding the egg pays out. Fully
+    // editable in config (rewards.book.*) so it can be kept in sync with the tiers.
+
+    public boolean isRewardBookEnabled() {
+        return cfg().getBoolean("rewards.book.enabled", true);
+    }
+
+    public String getRewardBookTitle() {
+        return cfg().getString("rewards.book.title", "<gold>Dragon Egg Rewards</gold>");
+    }
+
+    public String getRewardBookAuthor() {
+        return cfg().getString("rewards.book.author", "<dark_purple>DragonReign</dark_purple>");
+    }
+
+    /**
+     * The book's pages, each a MiniMessage string (one entry = one page). Pages render on
+     * cream parchment, so the shipped defaults use dark, high-contrast colours. Falls back
+     * to a built-in page set if the config list is missing or empty.
+     */
+    public List<String> getRewardBookPages() {
+        List<String> pages = cfg().getStringList("rewards.book.pages");
+        if (pages == null || pages.isEmpty()) {
+            return DEFAULT_REWARD_BOOK_PAGES;
+        }
+        return pages;
+    }
+
+    /** Built-in fallback pages, mirroring the shipped config so the book works even if the
+     *  rewards.book.pages key is deleted. Dark colours (cream parchment background). */
+    private static final List<String> DEFAULT_REWARD_BOOK_PAGES = List.of(
+        "<bold><gradient:#3D1466:#7B2FB5>Dragon Egg Rewards</gradient></bold>\n\n"
+            + "<black>Hold the Dragon Egg and get paid. Every hour you keep it on you, you earn "
+            + "<dark_green>money</dark_green> and a <dark_aqua>flight voucher</dark_aqua>.</black>\n\n"
+            + "<dark_gray>» turn the page «</dark_gray>",
+        "<bold><dark_purple>The longer, the better</dark_purple></bold>\n\n"
+            + "<black>Hour 1 — <dark_green>$25,000</dark_green> + 5m fly\n"
+            + "Hour 2 — <dark_green>$50,000</dark_green> + 10m fly\n"
+            + "Hour 3 — <dark_green>$90,000</dark_green> + 15m fly\n"
+            + "Hour 4 — <dark_green>$150,000</dark_green> + 20m fly</black>",
+        "<bold><dark_purple>It keeps paying</dark_purple></bold>\n\n"
+            + "<black>Hour 5 — <dark_green>$200,000</dark_green> + 30m fly\n"
+            + "Hour 6+ — <dark_green>$300,000</dark_green> + 30m fly, <dark_purple>every hour</dark_purple>.</black>\n\n"
+            + "<black>The top reward repeats for as long as you hold on.</black>",
+        "<bold><dark_red>The catch</dark_red></bold>\n\n"
+            + "<black>The clock only ticks while you're <dark_red>online and near the egg</dark_red> — "
+            + "no AFK farming.\n\n"
+            + "Lose the egg and your streak <dark_red>resets</dark_red> to hour 1.</black>",
+        "<bold><gradient:#3D1466:#7B2FB5>Go get it.</gradient></bold>\n\n"
+            + "<black>Flight vouchers are items — <dark_aqua>right-click</dark_aqua> the feather to bank the time, "
+            + "and it only drains while you're in the air.</black>\n\n"
+            + "<dark_gray>Hold it. Defend it. Get rich.</dark_gray>"
+    );
+
     // ── Anti-AFK (v1.2) ───────────────────────────────────────────────────────
 
     public boolean isAfkEnabled() {

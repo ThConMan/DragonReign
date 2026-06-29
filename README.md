@@ -57,11 +57,13 @@ conceptual single egg and is saved in `data.yml`.
     here". The arrow is only shown to players within range, and only in the egg's world.
 11. **Hold rewards** *(default on)* — the current owner earns a reward for every stretch of
     time they actively hold the egg (default every 60 minutes). Each reward is a tier of
-    console commands you configure (give items, money, xp, effects). The owner climbs the
+    console commands you configure — give items, money (via CMI/Vault), xp, effects, or hand
+    out vouchers from other plugins (e.g. a TempFly flight voucher). The owner climbs the
     ladder while they hold it; the ladder resets when the egg changes hands. Only the owner
     is told when they earn — there are no server-wide announcements. Time only builds up
     while the owner is actually with the egg (carrying it or near the placed block), so you
-    can't wall it into a base and farm rewards from elsewhere.
+    can't wall it into a base and farm rewards from elsewhere. Players can read a configurable
+    **Dragon Egg Rewards** book with `/dr rewards` to see exactly what holding the egg pays out.
 12. **Staleness respawn** *(default on)* — if the egg sits untouched for `staleness-days`
     (default 10) it respawns even while the owner is online, so the egg can't be parked
     forever. Holding it idle does not count as touching it.
@@ -100,6 +102,7 @@ Players with `dragonreign.bypass` ignore all protections.
 | `/dragonreign cosmetics` | Open the Dragonlord cosmetics menu (Dragonlords only). |
 | `/dragonreign particle` | Turn your own Dragonlord aura on or off (Dragonlords only). |
 | `/dragonreign title` | Turn your own Dragonlord title on or off (Dragonlords only). |
+| `/dragonreign rewards` *(alias `reward`)* | Give yourself the in-game "Dragon Egg Rewards" book — a colored written book explaining what holding the egg pays out. |
 | `/dragonreign info` | Public: owner, rule states, countdown status. Admins additionally see the egg's exact location, last-activity, strict-ownership posture, and unread inbox count. |
 | `/giveegg <player>` | Hand the egg you're holding to another online player (transfers ownership). |
 
@@ -116,6 +119,7 @@ its permission does **nothing**: no error, no reply.
 | `dragonreign.bypass` | op | Ignores **all** protections. |
 | `dragonreign.giveegg` | everyone | `/giveegg`. |
 | `dragonreign.command.info` | everyone | `/dr info` (the public readout). |
+| `dragonreign.command.rewards` | everyone | `/dr rewards` (the Dragon Egg Rewards book). |
 | `dragonreign.command.gui` | op | Open the config GUI. |
 | `dragonreign.command.history` | op | Open the history GUI (`/dr log`). |
 | `dragonreign.command.inbox` | op | Open the staff inbox GUI. |
@@ -191,6 +195,12 @@ rewards:
     - ["give %player% diamond 4"]
     - ["give %player% diamond 8", "xp add %player% 30 levels"]
     - ["effect give %player% strength 600 1"]
+  book:                      # the /dr rewards book players can read
+    enabled: true
+    title: "<gold>Dragon Egg Rewards</gold>"     # MiniMessage
+    author: "<dark_purple>DragonReign</dark_purple>"
+    pages:                   # each entry is one book page (MiniMessage); remove the list for a built-in default
+      - "<bold><gradient:#3D1466:#7B2FB5>Dragon Egg Rewards</gradient></bold>\n\n<black>Hold the Dragon Egg and get paid.</black>"
 
 afk:
   enabled: true
@@ -292,7 +302,11 @@ substituted at send time.
 | `rewards.enabled` | `true` | Reward the owner for active holding time. |
 | `rewards.interval-minutes` | `60` | Active holding time needed for each reward. |
 | `rewards.reset-on-loss` | `true` | Losing the egg resets the owner back to the first reward tier. |
-| `rewards.tiers` | *(see above)* | The reward ladder; each entry is a list of console commands run with `%player%` / `%tier%` substituted. |
+| `rewards.tiers` | *(see above)* | The reward ladder; each entry is a list of console commands run with `%player%` / `%tier%` substituted. Because they're plain console commands you can pay out money (e.g. `cmi money give %player% 25000` via CMI/Vault), items, XP, effects, or hand out vouchers from other plugins (e.g. a TempFly flight voucher via `tempfly give %player% 5m`). |
+| `rewards.book.enabled` | `true` | Enable the `/dr rewards` written book. |
+| `rewards.book.title` | `Dragon Egg Rewards` | Book title (MiniMessage). |
+| `rewards.book.author` | `DragonReign` | Book author (MiniMessage). |
+| `rewards.book.pages` | *(built-in default)* | A list where each entry is one book page (MiniMessage). Remove the list entirely to use the built-in default pages. Pages render on cream parchment, so use dark colours. |
 | `afk.enabled` | `true` | Pause reward and Dragonlord time while the owner is away. |
 | `afk.idle-seconds` | `300` | No real travel for this long counts as away (built-in check; small repeated motion doesn't count). |
 | `void-safety.enabled` | `true` | Rescue the egg to the End if it falls into the void. |
