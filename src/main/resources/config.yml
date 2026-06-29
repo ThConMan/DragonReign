@@ -121,6 +121,22 @@ rewards:
     - ["give %player% diamond 8", "xp add %player% 30 levels"]
     - ["effect give %player% strength 600 1"]
 
+  # The in-game rewards book (/dr rewards). A colored written book players can read to
+  # see what holding the egg pays out. Edit it freely to match your tiers above — each
+  # line under 'pages' is one book page, written in MiniMessage. Pages show on cream
+  # parchment, so use DARK colours (black body, dark_green/dark_purple/dark_red accents);
+  # light colours like white/yellow are unreadable on a book.
+  book:
+    enabled: true
+    title: "<gold>Dragon Egg Rewards</gold>"
+    author: "<dark_purple>DragonReign</dark_purple>"
+    pages:
+      - "<bold><gradient:#3D1466:#7B2FB5>Dragon Egg Rewards</gradient></bold>\n\n<black>Hold the Dragon Egg and get paid. Every hour you keep it on you, you earn <dark_green>money</dark_green> and a <dark_aqua>flight voucher</dark_aqua>.</black>\n\n<dark_gray>» turn the page «</dark_gray>"
+      - "<bold><dark_purple>The longer, the better</dark_purple></bold>\n\n<black>Hour 1 — <dark_green>$25,000</dark_green> + 5m fly\nHour 2 — <dark_green>$50,000</dark_green> + 10m fly\nHour 3 — <dark_green>$90,000</dark_green> + 15m fly\nHour 4 — <dark_green>$150,000</dark_green> + 20m fly</black>"
+      - "<bold><dark_purple>It keeps paying</dark_purple></bold>\n\n<black>Hour 5 — <dark_green>$200,000</dark_green> + 30m fly\nHour 6+ — <dark_green>$300,000</dark_green> + 30m fly, <dark_purple>every hour</dark_purple>.</black>\n\n<black>The top reward repeats for as long as you hold on.</black>"
+      - "<bold><dark_red>The catch</dark_red></bold>\n\n<black>The clock only ticks while you're <dark_red>online and near the egg</dark_red> — no AFK farming.\n\nLose the egg and your streak <dark_red>resets</dark_red> to hour 1.</black>"
+      - "<bold><gradient:#3D1466:#7B2FB5>Go get it.</gradient></bold>\n\n<black>Flight vouchers are items — <dark_aqua>right-click</dark_aqua> the feather to bank the time, and it only drains while you're in the air.</black>\n\n<dark_gray>Hold it. Defend it. Get rich.</dark_gray>"
+
 # ── Away (AFK) check ───────────────────────────────────────────────────────
 # Reward time and Dragonlord time only build up while the owner is really playing.
 # The owner counts as away if CMI or EssentialsX (when installed) says so, OR if they

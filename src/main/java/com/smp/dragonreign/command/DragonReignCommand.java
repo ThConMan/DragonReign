@@ -129,6 +129,21 @@ public final class DragonReignCommand implements TabExecutor {
                 GuideBook.give(player);
                 player.sendMessage(Msg.prefixed(config.getPrefix(), "<green>The Dragon Egg guide is in your inventory.</green>"));
             }
+            case "rewards", "reward" -> {
+                if (!sender.hasPermission(Perms.REWARDS)) {
+                    return true;
+                }
+                if (!(sender instanceof Player player)) {
+                    sender.sendMessage(Msg.prefixed(config.getPrefix(), "<red>Players only.</red>"));
+                    return true;
+                }
+                if (!config.isRewardBookEnabled()) {
+                    player.sendMessage(Msg.prefixed(config.getPrefix(), "<red>The rewards book is disabled.</red>"));
+                    return true;
+                }
+                RewardsBook.give(player, config);
+                player.sendMessage(Msg.prefixed(config.getPrefix(), "<green>The Dragon Egg rewards book is in your inventory.</green>"));
+            }
             case "info" -> showInfo(sender);
             case "admininfo", "ainfo", "status" -> showAdminInfo(sender);
             default -> {
@@ -310,6 +325,7 @@ public final class DragonReignCommand implements TabExecutor {
             if (sender.hasPermission(Perms.INFO)) subs.add("info");
             if (sender.hasPermission(Perms.ADMININFO)) subs.add("admininfo");
             if (sender.hasPermission(Perms.GUIDE)) subs.add("guide");
+            if (sender.hasPermission(Perms.REWARDS)) subs.add("rewards");
             if (sender.hasPermission(Perms.GUI)) subs.add("gui");
             if (sender.hasPermission(Perms.HISTORY)) {
                 subs.add("log");

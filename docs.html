@@ -74,7 +74,7 @@
                 <div class="docs-grid-item"><h4>Staleness respawn</h4><p>If the egg sits untouched for <span class="mono">staleness-days</span> (default 10) it respawns even while the owner is online — no parking it forever.</p></div>
                 <div class="docs-grid-item"><h4>Respawn countdown</h4><p>The respawn isn't instant: a timed countdown warns the server so players can race to the End. If the keeper returns in time, it's cancelled.</p></div>
                 <div class="docs-grid-item"><h4>Egg compass</h4><p>Players near a placed egg get an action-bar arrow pointing at it — warmer the closer they get.</p></div>
-                <div class="docs-grid-item"><h4>Hold rewards</h4><p>The keeper earns escalating, configurable rewards for actively holding the egg. The ladder resets when the egg changes hands.</p></div>
+                <div class="docs-grid-item"><h4>Hold rewards</h4><p>The keeper earns escalating, configurable rewards for actively holding the egg. Each tier is a list of console commands, so pay out items, money (CMI/Vault), XP, effects, or vouchers from other plugins (e.g. a TempFly flight voucher). The ladder resets when the egg changes hands, and players can read the <span class="mono">/dr rewards</span> book to see what's on offer.</p></div>
                 <div class="docs-grid-item"><h4>Anti-AFK</h4><p>Rewards and Dragonlord time only build while you're truly playing. AFK pools and auto-clickers don't count.</p></div>
                 <div class="docs-grid-item"><h4>Never lost</h4><p>A loose egg never despawns and is fireproof; if it falls into the void it's rebuilt at the End. There is always exactly one egg.</p></div>
                 <div class="docs-grid-item"><h4>Dragonlord aura</h4><p>Hold the egg long enough (default 7 days of active time) to permanently earn the Dragonlord title and a living aura: shimmering spirit-orbs that wander around you, <em>livewire</em> surges, lightning arcs between orbs, a coronation flourish, and reactivity to combat — every layer configurable.</p></div>
@@ -93,6 +93,7 @@
                         <tr><td><span class="mono">/dr info</span></td><td>Friendly readout: who holds the egg, how long until it resets, and a nudge to the guide.</td></tr>
                         <tr><td><span class="mono">/dr admininfo</span></td><td>Full technical readout: location, both reset timers, ownership posture, inbox. <span class="docs-tag docs-tag-op">op</span></td></tr>
                         <tr><td><span class="mono">/dr guide</span></td><td>Get the in-game illustrated guide book.</td></tr>
+                        <tr><td><span class="mono">/dr rewards</span> <span class="mono">/dr reward</span></td><td>Get the in-game "Dragon Egg Rewards" book — what holding the egg pays out.</td></tr>
                         <tr><td><span class="mono">/dr gui</span></td><td>Open the live settings menu. <span class="docs-tag docs-tag-op">op</span></td></tr>
                         <tr><td><span class="mono">/dr log</span></td><td>Open the egg history. <span class="docs-tag docs-tag-op">op</span></td></tr>
                         <tr><td><span class="mono">/dr inbox</span></td><td>Open the staff alert inbox. <span class="docs-tag docs-tag-op">op</span></td></tr>
@@ -117,6 +118,7 @@
                         <tr><td><span class="mono">dragonreign.bypass</span></td><td>op</td><td>Ignores all protections.</td></tr>
                         <tr><td><span class="mono">dragonreign.giveegg</span></td><td>everyone</td><td><span class="mono">/giveegg</span>.</td></tr>
                         <tr><td><span class="mono">dragonreign.command.info</span></td><td>everyone</td><td><span class="mono">/dr info</span>.</td></tr>
+                        <tr><td><span class="mono">dragonreign.command.rewards</span></td><td>everyone</td><td><span class="mono">/dr rewards</span> (the rewards book).</td></tr>
                         <tr><td><span class="mono">dragonreign.command.admininfo</span></td><td>op</td><td><span class="mono">/dr admininfo</span>.</td></tr>
                         <tr><td><span class="mono">dragonreign.command.gui</span></td><td>op</td><td>The settings menu.</td></tr>
                         <tr><td><span class="mono">dragonreign.command.history</span></td><td>op</td><td>The history menu.</td></tr>
@@ -141,9 +143,14 @@
 
 rewards:
   interval-minutes: 60     # active holding time per reward tier
-  tiers:                   # each tier = console commands ({player}, {tier})
-    - ["give %player% diamond 4"]
-    - ["give %player% diamond 8", "xp add %player% 30 levels"]
+  tiers:                   # each tier = console commands (%player%, %tier%)
+    - ["give %player% diamond 4"]                          # items
+    - ["cmi money give %player% 25000", "tempfly give %player% 5m"]  # money + a flight voucher
+  book:                    # the /dr rewards book players can read
+    enabled: true
+    title: "&lt;gold&gt;Dragon Egg Rewards&lt;/gold&gt;"
+    pages:                 # each entry = one page (MiniMessage); drop the list for a built-in default
+      - "..."             # cream parchment — use dark colours
 
 victor:
   threshold-hours: 168            # active hold time to become a Dragonlord (7 days)

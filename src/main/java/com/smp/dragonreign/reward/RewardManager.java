@@ -24,6 +24,11 @@ import java.util.concurrent.TimeUnit;
  */
 public final class RewardManager {
 
+    /** Optional Geyser/Floodgate prefix (".") plus a vanilla-legal name. Anything else is
+     *  refused before substitution into a console command. */
+    private static final java.util.regex.Pattern SAFE_NAME =
+            java.util.regex.Pattern.compile("^\\.?[A-Za-z0-9_]{1,16}$");
+
     private final DragonReign plugin;
 
     public RewardManager(DragonReign plugin) {
@@ -68,7 +73,18 @@ public final class RewardManager {
         int idx = Math.min(tierIndex, tiers.size() - 1);
         int human = tierIndex + 1; // 1-based for display / commands
         Player player = Bukkit.getPlayer(owner);
-        String playerName = player != null ? player.getName() : owner.toString();
+        if (player == null) {
+            return; // only an online keeper earns; never splice a raw UUID into a command
+        }
+        String playerName = player.getName();
+        // The name is substituted into a console command run as CONSOLE. Vanilla names are
+        // safe, but a Bedrock/Geyser name (when the proxy keeps spaces) could inject extra
+        // command arguments. Refuse anything outside the safe charset rather than risk it.
+        if (!SAFE_NAME.matcher(playerName).matches()) {
+            plugin.getLogger().warning("Skipping hold reward: keeper name '" + playerName
+                    + "' has characters that are unsafe inside a console command.");
+            return;
+        }
 
         for (String raw : tiers.get(idx)) {
             String cmd = raw.replace("%player%", playerName).replace("%tier%", Integer.toString(human));
