@@ -33,12 +33,15 @@ compass:
 
 respawn-on-inactivity:
   enabled: true            # default: true
-  inactivity-days: 14      # default: 14. owner gone this long -> the egg respawns in the End
+  inactivity-days: 7       # default: 14. owner gone this long -> the egg respawns in the End
   check-interval-minutes: 5   # default: 5. how often inactivity is checked
-  # Bring the egg back if it sits untouched (not placed, broken, picked up, or handed over)
-  # for this many days -- even if the owner is online. Stops someone from parking the egg
-  # forever. Set to 0 to turn this off. Must be less than inactivity-days.
-  staleness-days: 10       # default: 10. 0 = off
+  # Bring the egg back if it sits truly IDLE for this many days -- placed and abandoned, or
+  # held by an owner who is offline, AFK, or away from it. Actively holding it (online, not
+  # AFK, carrying it or standing near the placed block) keeps it fresh, so an engaged player
+  # is NEVER punished by this timer -- it only reclaims genuinely parked or idle-hoarded eggs.
+  # Still fires while an idle owner is online (the inactivity-days timer can't, since "online"
+  # counts as seen). Set to 0 to turn this off. Must be less than inactivity-days.
+  staleness-days: 5        # default: 10. 0 = off. must be < inactivity-days
 
 # ── Respawn countdown ──────────────────────────────────────────────────────
 # When the inactivity check decides the egg should come back, it does NOT respawn
@@ -136,6 +139,24 @@ rewards:
       - "<bold><dark_purple>It keeps paying</dark_purple></bold>\n\n<black>Hour 5 — <dark_green>$200,000</dark_green> + 30m fly\nHour 6+ — <dark_green>$300,000</dark_green> + 30m fly, <dark_purple>every hour</dark_purple>.</black>\n\n<black>The top reward repeats for as long as you hold on.</black>"
       - "<bold><dark_red>The catch</dark_red></bold>\n\n<black>The clock only ticks while you're <dark_red>online and near the egg</dark_red> — no AFK farming.\n\nLose the egg and your streak <dark_red>resets</dark_red> to hour 1.</black>"
       - "<bold><gradient:#3D1466:#7B2FB5>Go get it.</gradient></bold>\n\n<black>Flight vouchers are items — <dark_aqua>right-click</dark_aqua> the feather to bank the time, and it only drains while you're in the air.</black>\n\n<dark_gray>Hold it. Defend it. Get rich.</dark_gray>"
+
+# ── Kill bonus ─────────────────────────────────────────────────────────────
+# Besides holding the egg over time, the keeper can push their reward bar forward by
+# KILLING other players. Each qualifying kill banks 'minutes' of hold-time onto the bar,
+# so a kill can complete an interval and pay out a tier just like held time does. This
+# feeds ONLY the hold-reward ladder -- never the lifetime Dragonlord progress.
+#
+# Kills are gated hard so you can't farm the bar with your own alts: the victim must be a
+# real, independent, established account.
+kill-bonus:
+  enabled: true                    # default: true. keeper's kills add to the reward bar
+  minutes: 15                      # default: 15. hold-time equivalent each qualifying kill banks
+  min-victim-playtime-hours: 2     # default: 2. victims with less server playtime give nothing (anti-fresh-alt)
+  same-victim-cooldown-hours: 24   # default: 24. same victim pays the keeper at most once per window. 0 = off
+  ignore-ip-linked: true           # default: true. killing an account that shares your login IP gives nothing.
+                                   # Uses the same always-on, privacy-safe IP hashing as alt detection (no raw IPs),
+                                   # and honours the strict-ownership 'max-ip-group' cap so shared connections (CGNAT/
+                                   # VPN/school) aren't treated as an alt ring. Works even with strict-ownership off.
 
 # ── Away (AFK) check ───────────────────────────────────────────────────────
 # Reward time and Dragonlord time only build up while the owner is really playing.
@@ -239,6 +260,8 @@ messages:
   keeper-returned: "<gradient:#00C853:#B9F6CA><bold>✦ <player> returned in time</bold></gradient> <gray>— the Dragon Egg stays put.</gray>"
   # Sent only to the owner when they earn a hold reward. <tier> is the reward number.
   reward-earned: "<gradient:#FFD700:#FFF8E1><bold>✦ Hold Reward</bold></gradient> <gray>— you held the Dragon Egg long enough. <white>Reward <tier></white> <gray>granted.</gray>"
+  # Sent to the keeper when a qualifying PvP kill adds to their reward bar (see kill-bonus).
+  kill-bonus: "<gradient:#FFD700:#FFF8E1><bold>✦ Kill Bonus</bold></gradient> <gray>— your kill fed the Dragon Egg's power.</gray>"
   # Sent only to the player when they become a Dragonlord.
   victor-earned: "<bold><gradient:#9D4EDD:#F7F3E9>✦ You are now a DRAGONLORD ✦</gradient></bold> <gray>Your prestige cosmetics are unlocked.</gray>"
 

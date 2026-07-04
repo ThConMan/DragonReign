@@ -412,6 +412,37 @@ public final class ConfigManager {
                 "<gold>You held the Dragon Egg long enough to earn a reward! (reward <tier>)</gold>");
     }
 
+    // ── Kill bonus: the keeper's PvP kills add to the reward bar ───────────────
+
+    public boolean isKillBonusEnabled() {
+        return cfg().getBoolean("kill-bonus.enabled", true);
+    }
+
+    /** Active-hold-time equivalent (in minutes) each qualifying kill banks onto the bar. */
+    public int getKillBonusMinutes() {
+        return Math.max(0, cfg().getInt("kill-bonus.minutes", 15));
+    }
+
+    /** Victims with less server playtime than this (hours) give nothing — anti-fresh-alt. */
+    public int getKillBonusMinVictimPlaytimeHours() {
+        return Math.max(0, cfg().getInt("kill-bonus.min-victim-playtime-hours", 2));
+    }
+
+    /** The same victim pays a given killer at most once per this many hours. 0 = no cooldown. */
+    public int getKillBonusSameVictimCooldownHours() {
+        return Math.max(0, cfg().getInt("kill-bonus.same-victim-cooldown-hours", 24));
+    }
+
+    /** When true, killing an account that shares your login IP (group) is worth nothing. */
+    public boolean isKillBonusIgnoreIpLinked() {
+        return cfg().getBoolean("kill-bonus.ignore-ip-linked", true);
+    }
+
+    public String getKillBonusMessage() {
+        return cfg().getString("messages.kill-bonus",
+                "<gradient:#FFD700:#FFF8E1><bold>✦ Kill Bonus</bold></gradient> <gray>— your kill fed the Dragon Egg's power.</gray>");
+    }
+
     // ── Hold-rewards book (/dr rewards) ───────────────────────────────────────
     // A colored written book that explains what holding the egg pays out. Fully
     // editable in config (rewards.book.*) so it can be kept in sync with the tiers.

@@ -20,5 +20,8 @@ rm -rf build/classes && mkdir -p build/classes
 find src/main/java -name '*.java' > build/sources.txt
 javac --release 21 -cp "$CP" -d build/classes @build/sources.txt
 cp -r src/main/resources/* build/classes/ 2>/dev/null || true
-(cd build/classes && jar cf ../DragonReign-1.3.2.jar .)
-echo "BUILD OK -> build/DragonReign-1.3.2.jar"
+# Version comes from plugin.yml so the jar name can never drift from the plugin's own
+# reported version (that mismatch once put two different "1.3.2" jars into circulation).
+VERSION=$(sed -n 's/^version:[[:space:]]*//p' src/main/resources/plugin.yml | tr -d "'\"" | head -1)
+(cd build/classes && jar cf "../DragonReign-${VERSION}.jar" .)
+echo "BUILD OK -> build/DragonReign-${VERSION}.jar"
