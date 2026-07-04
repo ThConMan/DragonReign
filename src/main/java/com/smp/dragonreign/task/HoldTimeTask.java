@@ -71,8 +71,23 @@ public final class HoldTimeTask extends BukkitRunnable {
         if (plugin.afk().isAfk(player)) {
             return; // away — discard this gap
         }
-        if (plugin.config().isHoldRequirePresence() && !isEngaged(player)) {
+
+        // Is the keeper genuinely WITH the egg — carrying it, or standing near the placed
+        // block? This is what separates an active carrier from a placed-and-abandoned egg,
+        // and it drives the staleness refresh below regardless of the reward toggle.
+        boolean engaged = isEngaged(player);
+
+        if (plugin.config().isHoldRequirePresence() && !engaged) {
             return; // egg parked elsewhere — owner isn't actually holding the contest
+        }
+
+        // An online, non-AFK keeper who is actually with the egg keeps it "fresh", so the
+        // staleness timer (which exists to reclaim abandoned or idle-hoarded eggs) never fires
+        // on someone who is simply playing while holding it. Gated on `engaged`, not on the
+        // reward presence toggle, so turning require-presence off can't let a keeper refresh
+        // staleness from across the map while the egg actually sits parked and unattended.
+        if (engaged) {
+            plugin.store().touchActivity();
         }
 
         plugin.rewards().addActive(owner, delta);

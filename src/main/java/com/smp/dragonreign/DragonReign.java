@@ -143,6 +143,7 @@ public final class DragonReign extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new GuiListener(this), this);
         getServer().getPluginManager().registerEvents(new com.smp.dragonreign.listener.ChatTitleListener(this), this);
         getServer().getPluginManager().registerEvents(new com.smp.dragonreign.listener.CombatParticleListener(this), this);
+        getServer().getPluginManager().registerEvents(new com.smp.dragonreign.listener.KillBonusListener(this), this);
 
         this.voidGuardian = new VoidGuardian(this, new RespawnSequence(this));
         getServer().getPluginManager().registerEvents(voidGuardian, this);
