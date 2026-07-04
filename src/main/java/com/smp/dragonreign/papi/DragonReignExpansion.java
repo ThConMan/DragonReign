@@ -67,6 +67,13 @@ public final class DragonReignExpansion extends PlaceholderExpansion {
                     return "";
                 }
                 UUID uuid = player.getUniqueId();
+                // Don't out a hidden player: while Anonymizer is anonymizing them, suppress the
+                // title. It's a separate token from the rank prefix in CMI's chat format
+                // ({prefix}%dragonreign_title%{nickName}), so Anonymizer's prefix-blanking can't
+                // reach it — left alone, a unique victor title would reveal the invisible player.
+                if (com.smp.dragonreign.hook.AnonymizerHook.isAnonymized(uuid)) {
+                    return "";
+                }
                 boolean victor = isVictor(player);
                 if (victor && plugin.config().isVictorTitleEnabled() && plugin.victors().titleEnabled(uuid)) {
                     // Trailing space so it slots cleanly between a rank prefix and the name
