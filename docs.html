@@ -71,10 +71,11 @@
                 <div class="docs-grid-item"><h4>No containers</h4><p>The egg can only sit in a player inventory or be placed as a block — never a chest, ender chest, bundle, hopper, minecart, or any container.</p></div>
                 <div class="docs-grid-item"><h4>Drop control</h4><p>Dropping is a toggle (<span class="mono">no-drop</span>). When drops are allowed, a loose egg is <strong>fireproof</strong> (immune to lava, fire, cactus, explosions), <strong>floats out of lava and water</strong>, and never despawns — but still dies in the void and respawns at the End.</p></div>
                 <div class="docs-grid-item"><h4>Respawn on inactivity</h4><p>If the keeper is gone for <span class="mono">inactivity-days</span> (default 14), the egg respawns at the End portal.</p></div>
-                <div class="docs-grid-item"><h4>Staleness respawn</h4><p>If the egg sits untouched for <span class="mono">staleness-days</span> (default 10) it respawns even while the owner is online — no parking it forever.</p></div>
+                <div class="docs-grid-item"><h4>Staleness respawn</h4><p>An egg left <strong>idle</strong> — placed and abandoned, or held by an owner who's offline, AFK, or away from it — respawns after <span class="mono">staleness-days</span> (default 10), even while that owner is online. Actively holding it (online, not AFK, carrying it or near the placed block) keeps it fresh, so an engaged player is never punished — only genuinely parked or hoarded eggs come back.</p></div>
                 <div class="docs-grid-item"><h4>Respawn countdown</h4><p>The respawn isn't instant: a timed countdown warns the server so players can race to the End. If the keeper returns in time, it's cancelled.</p></div>
                 <div class="docs-grid-item"><h4>Egg compass</h4><p>Players near a placed egg get an action-bar arrow pointing at it — warmer the closer they get.</p></div>
                 <div class="docs-grid-item"><h4>Hold rewards</h4><p>The keeper earns escalating, configurable rewards for actively holding the egg. Each tier is a list of console commands, so pay out items, money (CMI/Vault), XP, effects, or vouchers from other plugins (e.g. a TempFly flight voucher). The ladder resets when the egg changes hands, and players can read the <span class="mono">/dr rewards</span> book to see what's on offer.</p></div>
+                <div class="docs-grid-item"><h4>Kill bonus</h4><p>The keeper's PvP kills also fill the reward bar, so a kill can complete a tier just like held time. Gated hard against alt-farming: killing an IP-linked account, a fresh account (under a playtime minimum), or the same victim again within a cooldown all count for nothing. Toggle it off with <span class="mono">kill-bonus.enabled</span>.</p></div>
                 <div class="docs-grid-item"><h4>Anti-AFK</h4><p>Rewards and Dragonlord time only build while you're truly playing. AFK pools and auto-clickers don't count.</p></div>
                 <div class="docs-grid-item"><h4>Never lost</h4><p>A loose egg never despawns and is fireproof; if it falls into the void it's rebuilt at the End. There is always exactly one egg.</p></div>
                 <div class="docs-grid-item"><h4>Dragonlord aura</h4><p>Hold the egg long enough (default 7 days of active time) to permanently earn the Dragonlord title and a living aura: shimmering spirit-orbs that wander around you, <em>livewire</em> surges, lightning arcs between orbs, a coronation flourish, and reactivity to combat — every layer configurable.</p></div>
@@ -139,7 +140,7 @@
             <p>The whole <span class="mono">config.yml</span> is commented in plain language, and most of it is editable live from <span class="mono">/dr gui</span>. The key knobs:</p>
             <pre class="docs-code">respawn-on-inactivity:
   inactivity-days: 14      # keeper gone this long -> egg respawns
-  staleness-days: 10       # egg untouched this long -> respawns anyway
+  staleness-days: 10       # egg left idle this long -> respawns (active holders stay safe)
 
 rewards:
   interval-minutes: 60     # active holding time per reward tier
@@ -151,6 +152,12 @@ rewards:
     title: "&lt;gold&gt;Dragon Egg Rewards&lt;/gold&gt;"
     pages:                 # each entry = one page (MiniMessage); drop the list for a built-in default
       - "..."             # cream parchment — use dark colours
+
+kill-bonus:
+  enabled: true            # keeper's PvP kills also fill the reward bar
+  minutes: 15              # hold-time each qualifying kill adds
+  min-victim-playtime-hours: 2   # fresh accounts give nothing (anti-alt)
+  same-victim-cooldown-hours: 24 # can't farm the same player
 
 victor:
   threshold-hours: 168            # active hold time to become a Dragonlord (7 days)
