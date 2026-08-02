@@ -28,7 +28,7 @@ body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     background: var(--bg-primary);
     background-image:
-        radial-gradient(ellipse at 20% 50%, rgba(168, 85, 247, 0.12) 0%, transparent 50%),
+        radial-gradient(ellipse at 20% 50%, color-mix(in srgb, var(--accent) 12%, transparent) 0%, transparent 50%),
         radial-gradient(ellipse at 80% 20%, rgba(88, 101, 242, 0.1) 0%, transparent 50%),
         radial-gradient(ellipse at 50% 90%, rgba(236, 72, 153, 0.09) 0%, transparent 50%),
         radial-gradient(ellipse at 10% 10%, rgba(100, 216, 255, 0.04) 0%, transparent 40%);
@@ -150,14 +150,14 @@ a:hover { color: #d9a8f0; }
 }
 
 .nav-links a:hover {
-    background: rgba(168, 85, 247, 0.1);
+    background: color-mix(in srgb, var(--accent) 10%, transparent);
     color: var(--text);
 }
 
 .nav-links a:hover svg { opacity: 1; }
 
 .nav-links a.active {
-    background: rgba(168, 85, 247, 0.15);
+    background: color-mix(in srgb, var(--accent) 15%, transparent);
     color: var(--accent-light);
 }
 
@@ -346,14 +346,14 @@ a:hover { color: #d9a8f0; }
 }
 
 .btn-primary {
-    background: linear-gradient(170deg, #b366ff 0%, #7c22cc 100%);
+    background: linear-gradient(170deg, var(--accent-light) 0%, var(--accent) 100%);
     color: #fff;
-    border: 1px solid rgba(179, 102, 255, 0.35);
+    border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
 }
 
 .btn-primary:hover {
     filter: brightness(1.12);
-    box-shadow: 0 0 18px rgba(168, 85, 247, 0.45);
+    box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 45%, transparent);
     color: #fff;
 }
 
@@ -366,7 +366,7 @@ a:hover { color: #d9a8f0; }
 .btn-outline:hover {
     border-color: var(--accent);
     color: var(--accent-light);
-    background: rgba(168, 85, 247, 0.08);
+    background: color-mix(in srgb, var(--accent) 8%, transparent);
 }
 
 /* ── Section ── */
@@ -411,7 +411,7 @@ a:hover { color: #d9a8f0; }
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
     border: 1px solid var(--border);
-    border-top: 1px solid rgba(168, 85, 247, 0.3);
+    border-top: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
     border-radius: 12px;
     padding: 2rem 1.5rem;
     text-align: center;
@@ -420,8 +420,8 @@ a:hover { color: #d9a8f0; }
 
 .feature-card:hover {
     transform: translateY(-6px);
-    border-color: rgba(168, 85, 247, 0.35);
-    box-shadow: 0 12px 40px rgba(168, 85, 247, 0.18), 0 0 0 1px rgba(168, 85, 247, 0.1);
+    border-color: color-mix(in srgb, var(--accent) 35%, transparent);
+    box-shadow: 0 12px 40px color-mix(in srgb, var(--accent) 18%, transparent), 0 0 0 1px color-mix(in srgb, var(--accent) 10%, transparent);
     background: rgba(24, 20, 40, 0.85);
 }
 
@@ -497,8 +497,8 @@ a:hover { color: #d9a8f0; }
 
 .rank-card:hover {
     transform: translateY(-8px);
-    border-color: rgba(168, 85, 247, 0.35);
-    box-shadow: 0 16px 50px var(--accent-glow), 0 0 0 1px rgba(168, 85, 247, 0.1);
+    border-color: color-mix(in srgb, var(--accent) 35%, transparent);
+    box-shadow: 0 16px 50px var(--accent-glow), 0 0 0 1px color-mix(in srgb, var(--accent) 10%, transparent);
     background: rgba(20, 18, 34, 0.9);
 }
 
@@ -525,10 +525,10 @@ a:hover { color: #d9a8f0; }
 }
 
 .rank-card.featured {
-    border-color: rgba(168, 85, 247, 0.35);
-    box-shadow: 0 0 50px var(--accent-glow), 0 0 100px rgba(168, 85, 247, 0.08);
+    border-color: color-mix(in srgb, var(--accent) 35%, transparent);
+    box-shadow: 0 0 50px var(--accent-glow), 0 0 100px color-mix(in srgb, var(--accent) 8%, transparent);
     position: relative;
-    background: linear-gradient(180deg, rgba(168, 85, 247, 0.1) 0%, var(--bg-card) 40%);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 10%, transparent) 0%, var(--bg-card) 40%);
 }
 
 .rank-card.featured::before {
@@ -836,7 +836,7 @@ a:hover { color: #d9a8f0; }
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
     border: 1px solid var(--border);
-    border-top: 2px solid rgba(168, 85, 247, 0.3);
+    border-top: 2px solid color-mix(in srgb, var(--accent) 30%, transparent);
     border-radius: 16px;
     padding: 2rem;
     transition: transform 0.25s, border-color 0.3s, box-shadow 0.3s;
@@ -844,8 +844,8 @@ a:hover { color: #d9a8f0; }
 
 .plugin-card:hover {
     transform: translateY(-6px);
-    border-color: rgba(168, 85, 247, 0.4);
-    box-shadow: 0 12px 40px rgba(168, 85, 247, 0.15), 0 0 0 1px rgba(168, 85, 247, 0.08);
+    border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+    box-shadow: 0 12px 40px color-mix(in srgb, var(--accent) 15%, transparent), 0 0 0 1px color-mix(in srgb, var(--accent) 8%, transparent);
 }
 
 .plugin-header {
@@ -1740,7 +1740,7 @@ a:hover { color: #d9a8f0; }
 
 .crate-card:hover {
     transform: translateY(-8px);
-    border-color: rgba(168, 85, 247, 0.35);
+    border-color: color-mix(in srgb, var(--accent) 35%, transparent);
     box-shadow: 0 16px 50px var(--accent-glow);
 }
 
@@ -1843,4 +1843,210 @@ a:hover { color: #d9a8f0; }
     background: radial-gradient(circle, rgba(155, 89, 182, 0.06) 0%, transparent 70%);
     pointer-events: none;
     z-index: -1;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MOTION & DEPTH LAYER
+   ---------------------------------------------------------------------------
+   Shared by every plugin docs site. Nothing here names a colour: it all
+   derives from --accent, --border and --bg-card, so each plugin's accent file
+   drives the whole effect and one copy of this file serves all of them.
+
+   Driven by js/motion.js, which tags elements at runtime -- no markup edits.
+   Everything degrades to a static page under prefers-reduced-motion.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Fine grain. Stops the large dark fields from banding and gives the
+      shading something to sit on. ── */
+body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.5;
+    background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/><feColorMatrix type='saturate' values='0'/></filter><rect width='140' height='140' filter='url(%23n)' opacity='.03'/></svg>");
+}
+
+/* ── Scroll progress ── */
+.scroll-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 200;
+    width: 100%;
+    height: 2px;
+    transform: scaleX(var(--p, 0));
+    transform-origin: 0 50%;
+    background: linear-gradient(90deg,
+        color-mix(in srgb, var(--accent) 55%, transparent),
+        var(--accent) 60%,
+        var(--accent-light));
+    box-shadow: 0 0 12px var(--accent-glow);
+    pointer-events: none;
+}
+
+/* ── Nav lifts off the page once you leave the hero ── */
+.nav {
+    transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+.nav.is-stuck {
+    background: color-mix(in srgb, var(--bg-primary) 82%, transparent);
+    backdrop-filter: blur(20px) saturate(1.3);
+    -webkit-backdrop-filter: blur(20px) saturate(1.3);
+    box-shadow: 0 8px 30px -12px rgba(0, 0, 0, 0.7);
+}
+
+/* ── Reveal on scroll. Reuses the framework's existing .fade-in contract. ── */
+.fade-in[data-d="1"] { transition-delay: 0.07s; }
+.fade-in[data-d="2"] { transition-delay: 0.14s; }
+.fade-in[data-d="3"] { transition-delay: 0.21s; }
+.fade-in[data-d="4"] { transition-delay: 0.28s; }
+.fade-in[data-d="5"] { transition-delay: 0.35s; }
+
+/* ── Depth. Layered rather than flat: a hairline lit top edge, an accent-tinted
+      drop shadow instead of pure black, and a soft inner floor. ── */
+.feature-card,
+.step-card,
+.compat-item,
+.plugin-card,
+.cta-card,
+.docs-callout,
+.docs-grid-item {
+    position: relative;
+    box-shadow:
+        0 16px 36px -18px rgba(0, 0, 0, 0.75),
+        inset 0 1px 0 rgba(255, 255, 255, 0.055),
+        inset 0 -24px 44px -30px var(--accent-glow);
+    transition: transform 0.28s cubic-bezier(.22,.61,.36,1),
+                border-color 0.28s ease,
+                box-shadow 0.28s ease;
+}
+
+.feature-card:hover,
+.step-card:hover,
+.compat-item:hover,
+.docs-grid-item:hover {
+    transform: translateY(-5px);
+    border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+    box-shadow:
+        0 30px 60px -26px var(--accent-glow-strong),
+        0 10px 24px -14px rgba(0, 0, 0, 0.7),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+/* Step numbers read as struck medallions rather than flat text. */
+.step-number {
+    transition: transform 0.3s cubic-bezier(.34,1.3,.64,1), box-shadow 0.3s ease;
+}
+.step-card:hover .step-number {
+    transform: scale(1.08);
+    box-shadow: 0 0 26px var(--accent-glow-strong);
+}
+
+/* Feature glyphs lift with their card. */
+.feature-icon-wrap {
+    transition: transform 0.3s cubic-bezier(.34,1.3,.64,1);
+}
+.feature-card:hover .feature-icon-wrap {
+    transform: translateY(-3px) scale(1.06);
+}
+
+/* ── Specular sweep across buttons ── */
+.btn {
+    position: relative;
+    overflow: hidden;
+}
+.btn::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: -80%;
+    width: 55%;
+    transform: skewX(-22deg);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.28), transparent);
+    transition: left 0.55s cubic-bezier(.22,.61,.36,1);
+    pointer-events: none;
+}
+.btn:hover::after { left: 130%; }
+
+/* ── Section headings get a hairline rule that draws itself in ── */
+.section-title {
+    position: relative;
+}
+/* The framework centres .section-title, so the rule is centred too and grows
+   out from the middle. `translate` is the independent property, which composes
+   with the `transform` the animation drives rather than fighting it. */
+.section-title::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    translate: -50% 0;
+    bottom: -0.55rem;
+    width: 58px;
+    height: 2px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    transform: scaleX(0);
+    transform-origin: 50% 50%;
+    transition: transform 0.7s cubic-bezier(.22,.61,.36,1) 0.15s;
+}
+.section-title.visible::after { transform: scaleX(1); }
+
+/* ── Docs sidebar: mark the section you are actually reading ── */
+.docs-toc a {
+    position: relative;
+    transition: color 0.2s ease, padding-left 0.25s ease;
+}
+.docs-toc a.is-current {
+    color: var(--accent-light);
+    padding-left: 0.55rem;
+}
+.docs-toc a.is-current::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 3px;
+    height: 1.05em;
+    border-radius: 2px;
+    transform: translateY(-50%);
+    background: var(--accent);
+    box-shadow: 0 0 10px var(--accent-glow-strong);
+}
+
+/* Table rows respond to the pointer so long reference tables stay trackable. */
+.docs-table tbody tr {
+    transition: background 0.18s ease;
+}
+.docs-table tbody tr:hover {
+    background: color-mix(in srgb, var(--accent) 7%, transparent);
+}
+
+/* Hard reveal, used by the motion script's failsafe and by print. Content on a
+   docs site must never stay hidden because an animation did not run. */
+.fade-in.fade-in-now {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+}
+
+@media print {
+    .fade-in { opacity: 1 !important; transform: none !important; }
+    .scroll-progress { display: none !important; }
+}
+
+/* ── Reduced motion: everything above collapses to a static page ── */
+@media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+    }
+    .fade-in { opacity: 1 !important; transform: none !important; }
+    .section-title::after { transform: scaleX(1); }
+    .scroll-progress { display: none; }
 }
