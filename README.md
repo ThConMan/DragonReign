@@ -23,7 +23,10 @@ conceptual single egg and is saved in `data.yml`.
    shulker, dropper/dispenser, furnace, hopper, the **ender chest**, or a **bundle**
    (the sneaky one — bundles live in your own inventory) is cancelled. Covers cursor
    placement, shift-click, number-key / hotbar / offhand swaps, double-click collect,
-   click-drag, and hopper transport.
+   click-drag, and hopper transport. The non-inventory hiding spots are blocked the
+   same way: **decorated pots** (right-clicking one stuffs the held item inside),
+   **item frames**, **armor stand hands**, and **item-collecting mobs** — an allay
+   handed the egg would otherwise fly away with it.
 2. **No drop** *(default on)* — you can't drop the egg on the ground.
 3. **Ender-chest sweep** *(default on)* — a periodic safety net that pulls any dragon
    egg out of online players' ender chests and hands it back.
@@ -55,15 +58,20 @@ conceptual single egg and is saved in `data.yml`.
     arrow pointing toward it, so a hidden egg can always be hunted down. Far from the egg you
     get a faint "something's near"; closer you get a direction; right on top it says "right
     here". The arrow is only shown to players within range, and only in the egg's world.
+    When someone clicks the placed egg and it does its vanilla blink-teleport, the tracker
+    follows it — the compass and the admin teleport button always point at where it really is.
 11. **Hold rewards** *(default on)* — the current owner earns a reward for every stretch of
     time they actively hold the egg (default every 60 minutes). Each reward is a tier of
     console commands you configure — give items, money (via CMI/Vault), xp, effects, or hand
     out vouchers from other plugins (e.g. a TempFly flight voucher). The owner climbs the
     ladder while they hold it; the ladder resets when the egg changes hands. Only the owner
-    is told when they earn — there are no server-wide announcements. Time only builds up
-    while the owner is actually with the egg (carrying it or near the placed block), so you
-    can't wall it into a base and farm rewards from elsewhere. Players can read a configurable
-    **Dragon Egg Rewards** book with `/dr rewards` to see exactly what holding the egg pays out.
+    is told when they earn — there are no server-wide announcements. Rewards only build while
+    the egg is actually **on** the keeper — in their inventory, offhand, or hand — and they're
+    really playing. Placing the egg down pauses the reward clock: a trophy sitting safe in a
+    vault shouldn't pay, carrying the weight and the risk should. (Standing near your placed
+    egg still counts toward Dragonlord lifetime time and keeps the egg fresh — it just doesn't
+    pay.) Players can read a configurable **Dragon Egg Rewards** book with `/dr rewards` to
+    see exactly what holding the egg pays out.
 12. **Staleness respawn** *(default on)* — if the egg sits untouched for `staleness-days`
     (default 10) it respawns even while the owner is online, so the egg can't be parked
     forever. Holding it idle does not count as touching it.
@@ -72,9 +80,12 @@ conceptual single egg and is saved in `data.yml`.
     says so, **or** if the built-in check sees no real travel for `idle-seconds` — and that
     built-in check always runs, so a stationary auto-clicker is caught even when another
     plugin reports them active. Small repeated motion (an AFK pool, a tiny loop) doesn't count.
-14. **Void safety** *(default on)* — the one egg can never be lost for good. If a dropped egg
-    or a falling egg block ever slips into the void, it is rebuilt on the End fountain and
-    staff get an alert.
+14. **Void safety** *(default on)* — the one egg can never be lost for good, full stop. A
+    loose egg shrugs off fire, lava, cactus, TNT and creeper blasts; explosions can't blow
+    up the placed egg block either (the blast happens around it). If a dropped egg or a
+    falling egg block ever slips into the void, it is rebuilt on the End fountain and staff
+    get an alert. And if some unknown path ever deletes the egg outright, a watchdog notices
+    the keeper's egg is gone within seconds, hands it back, and tells staff.
 15. **Dragonlord cosmetics** *(default on)* — holding the egg builds up lifetime active
     hold-time (away time excluded, and it never resets). Past `threshold-hours` (default 168 =
     7 days) the player permanently becomes a **Dragonlord** and unlocks two cosmetics: a
@@ -191,6 +202,7 @@ rewards:
   enabled: true
   interval-minutes: 60
   reset-on-loss: true
+  carried-only: true         # rewards only build while the egg is in your inventory (placed = paused)
   tiers:                     # each line is one reward = a list of console commands
     - ["give %player% diamond 4"]
     - ["give %player% diamond 8", "xp add %player% 30 levels"]
@@ -302,6 +314,7 @@ substituted at send time.
 | `rewards.enabled` | `true` | Reward the owner for active holding time. |
 | `rewards.interval-minutes` | `60` | Active holding time needed for each reward. |
 | `rewards.reset-on-loss` | `true` | Losing the egg resets the owner back to the first reward tier. |
+| `rewards.carried-only` | `true` | Rewards only build while the egg is in the keeper's inventory; a placed egg pauses the reward clock. Set `false` to also pay near-the-placed-egg time (the old behaviour). Dragonlord lifetime progress is unaffected either way. |
 | `rewards.tiers` | *(see above)* | The reward ladder; each entry is a list of console commands run with `%player%` / `%tier%` substituted. Because they're plain console commands you can pay out money (e.g. `cmi money give %player% 25000` via CMI/Vault), items, XP, effects, or hand out vouchers from other plugins (e.g. a TempFly flight voucher via `tempfly give %player% 5m`). |
 | `rewards.book.enabled` | `true` | Enable the `/dr rewards` written book. |
 | `rewards.book.title` | `Dragon Egg Rewards` | Book title (MiniMessage). |
@@ -310,7 +323,8 @@ substituted at send time.
 | `afk.enabled` | `true` | Pause reward and Dragonlord time while the owner is away. |
 | `afk.idle-seconds` | `300` | No real travel for this long counts as away (built-in check; small repeated motion doesn't count). |
 | `void-safety.enabled` | `true` | Rescue the egg to the End if it falls into the void. |
-| `void-safety.check-ticks` | `20` | How often the loose egg's height is checked. |
+| `void-safety.fireproof` | `true` | The egg can't be destroyed: a loose egg is immune to fire, lava, cactus and explosions (and floats out of liquids), and explosions can't break the placed egg block. |
+| `void-safety.check-ticks` | `4` | How often the loose egg's height/buoyancy is checked. |
 | `victor.threshold-hours` | `168` | Active holding time to become a Dragonlord. |
 | `victor.title` | `&6Dragonlord` | The Dragonlord title (legacy `&` colour codes). |
 | `victor.title-enabled` | `true` | Master switch for the title. |
@@ -320,7 +334,7 @@ substituted at send time.
 | `victor.particle-interval-ticks` | `40` | How often the aura shows. |
 | `victor.luckperms-meta` | `false` | Also write the title as a LuckPerms meta value (`dragonreign-title`). |
 | `hold-time.accrual-ticks` | `100` | Advanced: how often active hold-time is sampled. |
-| `hold-time.require-presence` | `true` | Only accrue reward/Dragonlord time while the owner is carrying the egg or near the placed egg. |
+| `hold-time.require-presence` | `true` | Only accrue hold-time while the owner is carrying the egg or near the placed egg. (With `rewards.carried-only` on, near-placed time feeds Dragonlord progress and staleness refresh but not rewards.) |
 | `hold-time.presence-radius` | `16` | Blocks from the placed egg that count as the owner being "with it". |
 | `respawn-countdown.enabled` | `true` | Use a timed contest window instead of an instant respawn. |
 | `respawn-countdown.duration-seconds` | `300` | Length of the countdown. |
@@ -425,7 +439,7 @@ There's no saved countdown state to corrupt.
 
 ## Install
 
-1. Drop `DragonReign-1.2.0.jar` into your server's `plugins/` folder.
+1. Drop `DragonReign-1.3.5.jar` into your server's `plugins/` folder.
 2. Start (or `/reload`) the server. `config.yml` is generated on first run (including a
    fresh random `ip-hash-salt`); `data.yml`, `players.yml`, and `inbox.yml` are created
    and maintained automatically.
@@ -447,8 +461,9 @@ You need JDK 21+ and a Paper (or Spigot) server jar for 1.21+ to compile against
 bash build.sh
 ```
 
-It compiles with `--release 21` and produces `build/DragonReign-1.2.0.jar`. A green
-build prints `BUILD OK`.
+It compiles with `--release 21` and produces `build/DragonReign-<version>.jar` (the
+version comes from `plugin.yml`, so the jar name can never drift from what the plugin
+reports). A green build prints `BUILD OK`.
 
 ---
 
@@ -459,6 +474,11 @@ build prints `BUILD OK`.
 - Bundle insertion is over-blocked on purpose: any click that would bring a dragon
   egg and a bundle into contact is cancelled. A false positive is a minor annoyance;
   a false negative would be a permanent dupe/hide exploit.
+- Closing a menu with the egg on your cursor and a full inventory used to vaporize it
+  (vanilla's overflow-drop met the no-drop cancel, and a cancelled cursor-drop restores
+  to nowhere). The close is now intercepted and the egg handed straight back — and a
+  watchdog on the hold-time ticker restores the egg and alerts staff if any deletion
+  path we haven't met yet ever makes it vanish while "held".
 - All world/inventory mutation happens on the main thread. The only off-thread work
   is the periodic save, which snapshots state on the main thread first and then
   writes the YAML asynchronously.
