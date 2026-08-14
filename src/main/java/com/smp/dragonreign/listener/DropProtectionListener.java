@@ -2,9 +2,11 @@ package com.smp.dragonreign.listener;
 
 import com.smp.dragonreign.DragonReign;
 import com.smp.dragonreign.config.ConfigManager;
+import com.smp.dragonreign.inbox.Severity;
 import com.smp.dragonreign.model.EventType;
 import com.smp.dragonreign.util.Egg;
 import com.smp.dragonreign.util.Msg;
+import com.smp.dragonreign.util.Scheduling;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -47,6 +49,27 @@ public final class DropProtectionListener implements Listener {
                 && !Msg.throttled("drop:" + player.getUniqueId(), 2000L)) {
             plugin.history().append(EventType.BLOCKED_DROP, player, null, "tried to drop the egg");
         }
+
+        // A cancelled Q-press drop restores the egg to its slot. But a drop the server
+        // synthesised while disposing of a held cursor (menu close, disconnect) has no
+        // slot to restore to — cancelling it deletes the stack. We can't tell the two
+        // apart inside the event, so verify one tick later: if the egg is genuinely
+        // nowhere (not on them, not loose), the cancellation ate it — hand it back.
+        int amount = event.getItemDrop().getItemStack().getAmount();
+        Scheduling.later(plugin, () -> {
+            if (!player.isOnline() || Egg.isCarrying(player)
+                    || (plugin.voidGuardian() != null && plugin.voidGuardian().hasLooseEgg())) {
+                return; // the cancel behaved — egg is still where it belongs
+            }
+            Egg.giveOrDrop(player, amount);
+            plugin.history().append(EventType.EGG_RECOVERED, player, null,
+                    "a blocked drop tried to erase the egg — restored it");
+            plugin.inbox().post(Severity.WARN, "Egg restored after blocked drop",
+                    "Cancelling a drop would have deleted the Dragon Egg held by "
+                            + player.getName() + " (cursor-disposal drop) — restored it.",
+                    player.getUniqueId());
+            plugin.saveAsync();
+        }, 1L);
     }
 
     /**
