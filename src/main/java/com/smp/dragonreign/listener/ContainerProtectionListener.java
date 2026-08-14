@@ -5,19 +5,25 @@ import com.smp.dragonreign.config.ConfigManager;
 import com.smp.dragonreign.model.EventType;
 import com.smp.dragonreign.util.Egg;
 import com.smp.dragonreign.util.Msg;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.inventory.InventoryPickupItemEvent;
 import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.event.player.PlayerArmorStandManipulateEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
@@ -240,6 +246,73 @@ public final class ContainerProtectionListener implements Listener {
         event.setCancelled(true);
         if (config.isLogBlocksToHistory() && !Msg.throttled("hopper-pickup", 2000L)) {
             plugin.history().appendSystem(EventType.BLOCKED_CONTAINER, null, "blocked hopper pickup of the egg");
+        }
+    }
+
+    // ── Mobs that pocket items (allays, foxes, piglins…) ───────────────────────
+
+    /**
+     * An allay handed a dragon egg will happily fly off and collect it — a mob's held
+     * item is a container the sweep can't reach and the compass can't see. No non-player
+     * entity may ever pick the egg up. Players still can (that's how ownership moves);
+     * the tracking listener handles their pickup at MONITOR.
+     */
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onMobPickup(EntityPickupItemEvent event) {
+        if (!plugin.config().isNoContainers() || event.getEntity() instanceof Player) {
+            return;
+        }
+        ItemStack item = event.getItem().getItemStack();
+        if (!Egg.isDragonEgg(item) && !Egg.bundleContainsDragonEgg(item)) {
+            return;
+        }
+        event.setCancelled(true);
+        if (plugin.config().isLogBlocksToHistory() && !Msg.throttled("mob-pickup", 2000L)) {
+            plugin.history().appendSystem(EventType.BLOCKED_CONTAINER, null,
+                    "blocked a " + event.getEntity().getType().name().toLowerCase().replace('_', ' ')
+                            + " from taking the egg");
+        }
+    }
+
+    // ── Decorated pots (right-click stuffs the held item inside) ───────────────
+
+    /**
+     * Decorated pots quietly swallow whatever you right-click them with — no inventory
+     * screen ever opens, so the click handlers above never see it. (Hopper feeds into a
+     * pot already go through {@link #onMove}.)
+     */
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onPotInsert(PlayerInteractEvent event) {
+        if (!plugin.config().isNoContainers() || event.getAction() != Action.RIGHT_CLICK_BLOCK) {
+            return;
+        }
+        Block block = event.getClickedBlock();
+        if (block == null || block.getType() != Material.DECORATED_POT) {
+            return;
+        }
+        Player player = event.getPlayer();
+        if (player.hasPermission("dragonreign.bypass")) {
+            return;
+        }
+        if (carriesEgg(event.getItem())) {
+            cancelContainer(event, player, plugin.config(), "decorated pot");
+        }
+    }
+
+    // ── Armor stands (their hands hold any item) ───────────────────────────────
+
+    /** An armor stand's hand is one more sneaky non-inventory place to park the egg. */
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onArmorStand(PlayerArmorStandManipulateEvent event) {
+        if (!plugin.config().isNoContainers()) {
+            return;
+        }
+        Player player = event.getPlayer();
+        if (player.hasPermission("dragonreign.bypass")) {
+            return;
+        }
+        if (carriesEgg(event.getPlayerItem())) {
+            cancelContainer(event, player, plugin.config(), "armor stand");
         }
     }
 

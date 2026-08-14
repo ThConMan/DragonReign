@@ -3,7 +3,9 @@ package com.smp.dragonreign.util;
 import org.bukkit.Material;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BundleMeta;
 
@@ -38,6 +40,37 @@ public final class Egg {
                 dropped.setUnlimitedLifetime(true); // the unique egg must never despawn on the ground
             }
         }
+    }
+
+    /**
+     * Is the egg anywhere on this player's person right now: inventory (including armor
+     * slots and offhand), the item held on their mouse cursor mid-click, their own 2x2
+     * crafting grid, or nested inside a bundle they hold. Menu shuffling must never make
+     * the egg look "not carried" for a tick — that's how phantom-loss bugs start.
+     */
+    public static boolean isCarrying(Player player) {
+        if (player == null) {
+            return false;
+        }
+        for (ItemStack stack : player.getInventory().getContents()) {
+            if (isDragonEgg(stack) || (isBundle(stack) && bundleContainsDragonEgg(stack))) {
+                return true;
+            }
+        }
+        if (isDragonEgg(player.getItemOnCursor())) {
+            return true;
+        }
+        // The 2x2 crafting grid is part of the player's own screen (type CRAFTING), not a
+        // container, so an egg parked there is still on their person.
+        InventoryView view = player.getOpenInventory();
+        if (view.getType() == InventoryType.CRAFTING || view.getType() == InventoryType.CREATIVE) {
+            for (ItemStack stack : view.getTopInventory().getContents()) {
+                if (isDragonEgg(stack)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     public static boolean isDragonEgg(Material material) {

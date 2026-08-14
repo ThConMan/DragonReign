@@ -10,7 +10,9 @@
 # ── Protection rules (toggle these live) ───────────────────────────────────
 
 # Block the egg from entering ANY non-player inventory: chests, barrels, shulkers,
-# droppers, dispensers, furnaces, the ender chest, AND bundles of any color.
+# droppers, dispensers, furnaces, the ender chest, AND bundles of any color — plus the
+# sneaky non-inventory spots: decorated pots, item frames, armor stand hands, and mobs
+# that pocket items (an allay handed the egg would fly off with it).
 # The egg may only sit in a player's inventory or be placed as a block.
 no-containers: true        # default: true
 
@@ -119,6 +121,11 @@ rewards:
   enabled: true            # default: true
   interval-minutes: 60     # default: 60. active holding time needed for each reward
   reset-on-loss: true      # default: true. losing the egg resets the owner back to tier 1
+  # Rewards only build while the egg is ON the keeper — in their inventory, offhand, or
+  # hand. Placing it down PAUSES the reward clock (a trophy sitting safe in a vault
+  # shouldn't pay; carrying the weight and the risk should). Placed time still counts
+  # toward lifetime Dragonlord progress — it just doesn't pay rewards.
+  carried-only: true       # default: true. false = placed-and-nearby time pays too (old behaviour)
   tiers:                   # each line is one reward = a list of console commands
     - ["give %player% diamond 4"]
     - ["give %player% diamond 8", "xp add %player% 30 levels"]
@@ -137,7 +144,7 @@ rewards:
       - "<bold><gradient:#3D1466:#7B2FB5>Dragon Egg Rewards</gradient></bold>\n\n<black>Hold the Dragon Egg and get paid. Every hour you keep it on you, you earn <dark_green>money</dark_green> and a <dark_aqua>flight voucher</dark_aqua>.</black>\n\n<dark_gray>» turn the page «</dark_gray>"
       - "<bold><dark_purple>The longer, the better</dark_purple></bold>\n\n<black>Hour 1 — <dark_green>$25,000</dark_green> + 5m fly\nHour 2 — <dark_green>$50,000</dark_green> + 10m fly\nHour 3 — <dark_green>$90,000</dark_green> + 15m fly\nHour 4 — <dark_green>$150,000</dark_green> + 20m fly</black>"
       - "<bold><dark_purple>It keeps paying</dark_purple></bold>\n\n<black>Hour 5 — <dark_green>$200,000</dark_green> + 30m fly\nHour 6+ — <dark_green>$300,000</dark_green> + 30m fly, <dark_purple>every hour</dark_purple>.</black>\n\n<black>The top reward repeats for as long as you hold on.</black>"
-      - "<bold><dark_red>The catch</dark_red></bold>\n\n<black>The clock only ticks while you're <dark_red>online and near the egg</dark_red> — no AFK farming.\n\nLose the egg and your streak <dark_red>resets</dark_red> to hour 1.</black>"
+      - "<bold><dark_red>The catch</dark_red></bold>\n\n<black>The clock only ticks while the egg is <dark_red>on you</dark_red> and you're really playing — placing it down or going AFK pauses it.\n\nLose the egg and your streak <dark_red>resets</dark_red> to hour 1.</black>"
       - "<bold><gradient:#3D1466:#7B2FB5>Go get it.</gradient></bold>\n\n<black>Flight vouchers are items — <dark_aqua>right-click</dark_aqua> the feather to bank the time, and it only drains while you're in the air.</black>\n\n<dark_gray>Hold it. Defend it. Get rich.</dark_gray>"
 
 # ── Kill bonus ─────────────────────────────────────────────────────────────
@@ -173,9 +180,11 @@ afk:
 # slips into the void, it's rebuilt on the End fountain and staff get an alert.
 void-safety:
   enabled: true            # default: true
-  fireproof: true          # default: true. a loose (dropped/falling) egg is immune to fire, lava,
-                           # cactus and explosions, and floats out of lava/water instead of sinking.
-                           # The void still removes it (then it respawns at the End).
+  fireproof: true          # default: true. the egg cannot be destroyed: a loose (dropped/falling)
+                           # egg shrugs off fire, lava, cactus, TNT and creepers, and floats out of
+                           # lava/water instead of sinking; explosions also can't blow up the PLACED
+                           # egg block (the blast happens around it). The void still removes a loose
+                           # egg (then it respawns at the End).
   check-ticks: 4           # default: 4 (~5x/second). how often the loose egg is checked (void + buoyancy).
                            # capped at 20: a wider gap could let a falling egg cross into the void unseen
 
@@ -277,8 +286,10 @@ end-world-name: ""
 # only the measuring rate, not the reward timing -- leave it unless you know you need to.
 hold-time:
   accrual-ticks: 100       # default: 100 (every 5 seconds)
-  # When on, reward and Dragonlord time only build up while the owner is actually with the
-  # egg -- carrying it, or standing within presence-radius of the placed egg block. This
-  # stops someone from walling the egg into a base and farming time while they're elsewhere.
+  # When on, hold-time only builds up while the owner is actually with the egg -- carrying
+  # it, or standing within presence-radius of the placed egg block. This stops someone from
+  # walling the egg into a base and farming time while they're elsewhere. (Rewards are
+  # stricter still when rewards.carried-only is on: near-the-placed-egg time feeds
+  # Dragonlord progress and keeps the egg fresh, but only carried time pays rewards.)
   require-presence: true   # default: true
   presence-radius: 16      # default: 16. blocks from the placed egg that count as "with it"

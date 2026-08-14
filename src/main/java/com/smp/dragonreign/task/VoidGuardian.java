@@ -17,7 +17,10 @@ import java.util.UUID;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockExplodeEvent;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.ItemSpawnEvent;
@@ -91,6 +94,51 @@ public final class VoidGuardian implements Listener {
         // Someone grabbed the dropped egg — it's safe in an inventory now.
         if (tracked != null && tracked.equals(event.getItem())) {
             tracked = null;
+        }
+    }
+
+    /** Is a loose egg (dropped item or falling block) known to exist right now? */
+    public boolean hasLooseEgg() {
+        return tracked != null && tracked.isValid() && !tracked.isDead();
+    }
+
+    // ── The egg simply cannot be destroyed ──────────────────────────────────────
+
+    /**
+     * The invulnerable flag set in {@link #onItemSpawn} should already shrug off TNT and
+     * creepers, but pressure testing proved a loose egg still dies to explosions. So the
+     * guarantee lives here instead, where no vanilla damage bookkeeping can dodge it:
+     * every damage event against a dragon-egg item is flatly cancelled. The void isn't
+     * damage — a void drop still recovers through {@link #tick()} as before.
+     */
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onItemDamage(EntityDamageEvent event) {
+        if (!plugin.config().isEggFireproof()) {
+            return;
+        }
+        if (event.getEntity() instanceof Item item && Egg.isDragonEgg(item.getItemStack())) {
+            event.setCancelled(true);
+        }
+    }
+
+    /**
+     * A creeper or TNT blast that catches the PLACED egg block would destroy it outright
+     * most of the time (explosions only sometimes drop the block). Pull the egg out of the
+     * blast's block list so the explosion happens around it — the one egg is not allowed
+     * to be collateral damage. If the blast removes what it stood on, gravity turns it
+     * into a falling block and the tracking above takes over.
+     */
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onEntityExplode(EntityExplodeEvent event) {
+        if (plugin.config().isEggFireproof()) {
+            event.blockList().removeIf(b -> b.getType() == Material.DRAGON_EGG);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onBlockExplode(BlockExplodeEvent event) {
+        if (plugin.config().isEggFireproof()) {
+            event.blockList().removeIf(b -> b.getType() == Material.DRAGON_EGG);
         }
     }
 

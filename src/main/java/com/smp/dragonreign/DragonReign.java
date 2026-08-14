@@ -393,6 +393,10 @@ public final class DragonReign extends JavaPlugin {
         return victors;
     }
 
+    public VoidGuardian voidGuardian() {
+        return voidGuardian;
+    }
+
     /** Record that a victor just dealt or took damage (drives the aura's combat reactivity). */
     public void markCombat(java.util.UUID uuid) {
         if (uuid != null) {

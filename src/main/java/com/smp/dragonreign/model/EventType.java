@@ -9,6 +9,7 @@ import org.bukkit.Material;
 public enum EventType {
 
     PLACED("Placed", Material.DRAGON_EGG),
+    TELEPORTED("Teleported", Material.ENDER_PEARL),
     BROKEN("Broken", Material.IRON_PICKAXE),
     PICKED_UP("Picked up", Material.LIME_DYE),
     OWNER_CHANGED("Owner changed", Material.PLAYER_HEAD),

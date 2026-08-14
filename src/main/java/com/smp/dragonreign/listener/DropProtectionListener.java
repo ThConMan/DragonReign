@@ -10,6 +10,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
@@ -46,6 +47,33 @@ public final class DropProtectionListener implements Listener {
                 && !Msg.throttled("drop:" + player.getUniqueId(), 2000L)) {
             plugin.history().append(EventType.BLOCKED_DROP, player, null, "tried to drop the egg");
         }
+    }
+
+    /**
+     * The deletion Lisek found: close any menu with the egg on your mouse cursor while
+     * every inventory slot is full, and vanilla's give-back overflows into a drop — which
+     * {@link #onDrop} then cancels, and the cancelled drop's stack simply ceases to exist
+     * (the cursor was already cleared, so there is no slot to restore it to). This fires
+     * BEFORE the server disposes of the cursor, so we take the egg off the cursor ourselves
+     * and route it through the one shared give-back path: into a free slot if there is one
+     * (what vanilla would have done), else a protected drop at the player's feet — visible,
+     * unkillable, despawn-proof, and mob/hopper-proof, instead of gone.
+     */
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onClose(InventoryCloseEvent event) {
+        if (!(event.getPlayer() instanceof Player player)) {
+            return;
+        }
+        ItemStack cursor = event.getView().getCursor();
+        if (!Egg.isDragonEgg(cursor)) {
+            return;
+        }
+        if (player.hasPermission("dragonreign.bypass")) {
+            return; // bypass keeps plain vanilla behaviour, and vanilla handles it fine
+        }
+        int amount = cursor.getAmount();
+        event.getView().setCursor(null);
+        Egg.giveOrDrop(player, amount);
     }
 
     /**

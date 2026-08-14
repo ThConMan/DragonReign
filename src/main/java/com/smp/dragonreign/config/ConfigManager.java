@@ -381,6 +381,16 @@ public final class ConfigManager {
     }
 
     /**
+     * When true (the default), hold rewards only build while the egg is actually ON the
+     * keeper — in their inventory, offhand, or cursor. A placed egg pauses the reward
+     * clock: a trophy in a safe vault shouldn't pay, carrying the risk should. Lifetime
+     * Dragonlord time is NOT affected by this — it keeps the wider presence rule.
+     */
+    public boolean isRewardCarriedOnly() {
+        return cfg().getBoolean("rewards.carried-only", true);
+    }
+
+    /**
      * The reward ladder: each entry is a list of console commands to run for that tier,
      * with {@code %player%} and {@code %tier%} substituted. Returns an empty list if
      * nothing is configured. Defensive against malformed YAML (skips non-list rows).
@@ -489,8 +499,8 @@ public final class ConfigManager {
             + "Hour 6+ — <dark_green>$300,000</dark_green> + 30m fly, <dark_purple>every hour</dark_purple>.</black>\n\n"
             + "<black>The top reward repeats for as long as you hold on.</black>",
         "<bold><dark_red>The catch</dark_red></bold>\n\n"
-            + "<black>The clock only ticks while you're <dark_red>online and near the egg</dark_red> — "
-            + "no AFK farming.\n\n"
+            + "<black>The clock only ticks while the egg is <dark_red>on you</dark_red> and you're "
+            + "really playing — placing it down or going AFK pauses it.\n\n"
             + "Lose the egg and your streak <dark_red>resets</dark_red> to hour 1.</black>",
         "<bold><gradient:#3D1466:#7B2FB5>Go get it.</gradient></bold>\n\n"
             + "<black>Flight vouchers are items — <dark_aqua>right-click</dark_aqua> the feather to bank the time, "

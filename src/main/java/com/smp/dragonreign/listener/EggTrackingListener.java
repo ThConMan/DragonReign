@@ -15,6 +15,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockFromToEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
@@ -73,6 +74,24 @@ public final class EggTrackingListener implements Listener {
             store().setLocation(loc);
             store().touchActivity();
         }
+    }
+
+    /**
+     * Vanilla's party trick: click a placed dragon egg and it blinks up to ~15 blocks
+     * away. That move arrives as a BlockFromToEvent (the only non-liquid source of one),
+     * and before this handler existed the tracked location silently went stale — the
+     * compass kept pointing at, and the admin teleport button kept warping to, the spot
+     * the egg had already left. Follow the blink; the click also counts as touching it.
+     */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onTeleport(BlockFromToEvent event) {
+        if (!Egg.isDragonEgg(event.getBlock().getType())) {
+            return;
+        }
+        EggLocation to = EggLocation.of(event.getToBlock());
+        store().setLocation(to);
+        store().touchActivity();
+        plugin.history().appendSystem(EventType.TELEPORTED, to, "the egg blinked away to a new spot");
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)

@@ -77,13 +77,22 @@ public final class GiveEggCommand implements TabExecutor {
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        if (args.length == 1) {
+        if (args.length == 1 && sender.hasPermission(Perms.GIVEEGG)) {
             String prefix = args[0].toLowerCase();
             List<String> names = new ArrayList<>();
             for (Player p : Bukkit.getOnlinePlayers()) {
-                if (!p.equals(sender) && p.getName().toLowerCase().startsWith(prefix)) {
-                    names.add(p.getName());
+                if (p.equals(sender) || !p.getName().toLowerCase().startsWith(prefix)) {
+                    continue;
                 }
+                // Never suggest someone the sender can't see: vanished staff, and players
+                // Anonymizer is currently hiding (a name hint would out them).
+                if (sender instanceof Player viewer && !viewer.canSee(p)) {
+                    continue;
+                }
+                if (com.smp.dragonreign.hook.AnonymizerHook.isAnonymized(p.getUniqueId())) {
+                    continue;
+                }
+                names.add(p.getName());
             }
             return names;
         }
