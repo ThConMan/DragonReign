@@ -302,11 +302,17 @@ public final class DragonReignCommand implements TabExecutor {
                 + com.smp.dragonreign.util.Times.human(plugin.inactivityRemainingMillis())
                 + "</white><gray>, staleness: <white>"
                 + com.smp.dragonreign.util.Times.human(plugin.stalenessRemainingMillis()) + "</white></gray>"));
-        sender.sendMessage(Msg.mm("<gray>Dragonlord tenure: <white>" + c.getVictorThresholdHours() + "h</white>"
-                + "<gray>, " + (owner == null ? "no keeper" : "earned in <white>"
-                        + com.smp.dragonreign.util.Times.human(
-                                plugin.victors().tenureRemaining(plugin.store().getOwnedSince()))
-                        + "</white>") + "</gray>"));
+        String tenure;
+        if (owner == null) {
+            tenure = "no keeper";
+        } else if (plugin.victors().isVictor(owner)) {
+            tenure = "already a Dragonlord";
+        } else {
+            tenure = "earned in <white>" + com.smp.dragonreign.util.Times.human(
+                    plugin.victors().tenureRemaining(plugin.store().getOwnedSince())) + "</white>";
+        }
+        sender.sendMessage(Msg.mm("<gray>Dragonlord tenure: <white>" + c.getVictorThresholdHours()
+                + "h</white><gray>, " + tenure + "</gray>"));
         sender.sendMessage(Msg.mm("<gray>Last activity: <white>" + STAMP.format(
                 java.time.Instant.ofEpochMilli(plugin.store().getLastActivity())) + "</white></gray>"));
         String strict;
