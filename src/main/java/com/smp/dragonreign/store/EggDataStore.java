@@ -93,6 +93,13 @@ public final class EggDataStore {
 
         state.lastActivity = data.getLong("egg.last-activity", System.currentTimeMillis());
         state.enforcedClockFloor = data.getLong("egg.enforced-clock-floor", 0L);
+        // Upgrading from a save written before the tenure clock existed: the key is absent
+        // but someone already holds the egg. Start their week now rather than backdating it
+        // to a hand-off we never recorded — nobody gets crowned by the upgrade itself.
+        state.ownedSince = data.getLong("egg.owned-since", 0L);
+        if (state.ownerUuid != null && state.ownedSince <= 0) {
+            state.ownedSince = System.currentTimeMillis();
+        }
         state.rewardTier = Math.max(0, data.getInt("egg.reward-tier", 0));
         state.rewardProgressMillis = Math.max(0L, data.getLong("egg.reward-progress", 0L));
 
@@ -166,6 +173,11 @@ public final class EggDataStore {
             // IP-link transfer re-establishes it inside the hook below.
             clearEnforcedClock();
 
+            // Restart the Dragonlord tenure clock. Losing the egg — to a rival, to
+            // staleness, to the respawn reset — costs the whole week, which is the entire
+            // point of the title: it says you kept it, not that you once touched it.
+            state.ownedSince = newOwner != null ? System.currentTimeMillis() : 0L;
+
             // Losing the egg resets the hold-reward ladder for the new keeper, unless the
             // server turned that off. Covers transfer, pickup, and the respawn reset
             // (setOwner(null, ...)) — every path ownership changes flows through here.
@@ -208,6 +220,14 @@ public final class EggDataStore {
 
     public long getLastActivity() {
         return state.lastActivity;
+    }
+
+    /**
+     * Epoch millis when the current keeper took the egg, or 0 when it is unowned. Read by
+     * the hold-time ticker to decide when a keeper's unbroken tenure has earned Dragonlord.
+     */
+    public long getOwnedSince() {
+        return state.ownedSince;
     }
 
     /**
@@ -321,6 +341,7 @@ public final class EggDataStore {
                 state.location,
                 state.lastActivity,
                 state.enforcedClockFloor,
+                state.ownedSince,
                 state.rewardTier,
                 state.rewardProgressMillis,
                 new LinkedHashMap<>(state.lastSeen),
@@ -344,6 +365,9 @@ public final class EggDataStore {
         out.set("egg.last-activity", snap.lastActivity);
         if (snap.enforcedClockFloor > 0) {
             out.set("egg.enforced-clock-floor", snap.enforcedClockFloor);
+        }
+        if (snap.ownedSince > 0) {
+            out.set("egg.owned-since", snap.ownedSince);
         }
         if (snap.rewardTier > 0) {
             out.set("egg.reward-tier", snap.rewardTier);

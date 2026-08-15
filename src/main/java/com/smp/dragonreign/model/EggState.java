@@ -16,6 +16,12 @@ public final class EggState {
     public long lastActivity;
     public long enforcedClockFloor;   // 0 = none; see EggDataStore.getEnforcedClockFloor
 
+    // When the CURRENT keeper took the egg (epoch millis; 0 = unowned). This is the
+    // Dragonlord clock: real elapsed time, not played time, so the title is earned by
+    // keeping the egg through a full week of everyone else trying to take it. Any genuine
+    // ownership change restarts it; a server restart does not, since it is persisted.
+    public long ownedSince;
+
     // Hold-reward ladder for the CURRENT keeper. rewardTier is how many rewards they've
     // already earned; rewardProgressMillis is active held time banked toward the next one.
     // Both reset when the egg changes hands (unless reset-on-loss is turned off).
