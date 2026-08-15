@@ -257,6 +257,14 @@ public final class DragonReignCommand implements TabExecutor {
             boolean lord = plugin.victors().isVictor(owner);
             sender.sendMessage(Msg.mm("<gray>The egg belongs to <white>" + Players.name(owner) + "</white>"
                     + (lord ? " <dark_purple>— a Dragonlord</dark_purple>" : "") + ".</gray>"));
+            if (!lord) {
+                // Public on purpose: knowing the keeper is a day off the crown is exactly the
+                // kind of thing that should send people looking for them.
+                sender.sendMessage(Msg.mm("<gray>They become a Dragonlord if they still hold it in <white>"
+                        + com.smp.dragonreign.util.Times.human(
+                                plugin.victors().tenureRemaining(plugin.store().getOwnedSince()))
+                        + "</white>.</gray>"));
+            }
             long reset = plugin.resetRemainingMillis();
             if (reset >= 0) {
                 sender.sendMessage(Msg.mm("<gray>If left alone, it resets at the End in <white>"
@@ -294,6 +302,11 @@ public final class DragonReignCommand implements TabExecutor {
                 + com.smp.dragonreign.util.Times.human(plugin.inactivityRemainingMillis())
                 + "</white><gray>, staleness: <white>"
                 + com.smp.dragonreign.util.Times.human(plugin.stalenessRemainingMillis()) + "</white></gray>"));
+        sender.sendMessage(Msg.mm("<gray>Dragonlord tenure: <white>" + c.getVictorThresholdHours() + "h</white>"
+                + "<gray>, " + (owner == null ? "no keeper" : "earned in <white>"
+                        + com.smp.dragonreign.util.Times.human(
+                                plugin.victors().tenureRemaining(plugin.store().getOwnedSince()))
+                        + "</white>") + "</gray>"));
         sender.sendMessage(Msg.mm("<gray>Last activity: <white>" + STAMP.format(
                 java.time.Instant.ofEpochMilli(plugin.store().getLastActivity())) + "</white></gray>"));
         String strict;

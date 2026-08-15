@@ -17,7 +17,8 @@ import java.util.UUID;
 /**
  * The one place "active held time" is measured. Once per accrual tick it works out how
  * much real time the current keeper has been online and not away since the last tick,
- * then feeds that delta to both the hold rewards and the victor totals.
+ * then feeds that delta to the hold rewards and the lifetime hold-time stat. Dragonlord
+ * itself is not paid out of this delta — it is a tenure check against the ownership stamp.
  *
  * <p>Using a wall-clock delta (rather than counting ticks) means a lag spike or a longer
  * configured interval can never over- or under-count. Time is discarded whenever the egg
@@ -81,6 +82,12 @@ public final class HoldTimeTask extends BukkitRunnable {
         boolean carried = Egg.isCarrying(player);
         watchForPhantomLoss(player, carried);
 
+        // Dragonlord runs on the ownership clock, not this delta: the keeper has to survive a
+        // full week of real time holding the egg. Checked here purely because it's where we
+        // know the keeper is online — so the coronation has an audience — and it deliberately
+        // sits above the AFK and presence gates, which shape rewards, not tenure.
+        plugin.victors().checkTenure(owner, store.getOwnedSince());
+
         long delta = now - lastStamp;
         lastStamp = now;
         if (delta <= 0) {
@@ -110,7 +117,7 @@ public final class HoldTimeTask extends BukkitRunnable {
 
         // Hold REWARDS pay for bearing the egg — the slot it costs and the target it paints
         // on you. A placed egg (safe in a vault, or parked at the End border) pauses the
-        // reward clock. Lifetime Dragonlord time keeps the wider rule: standing with your
+        // reward clock. The lifetime hold-time stat keeps the wider rule: standing with your
         // displayed trophy still deepens the bond, it just doesn't pay.
         if (carried || !plugin.config().isRewardCarriedOnly()) {
             plugin.rewards().addActive(owner, delta);

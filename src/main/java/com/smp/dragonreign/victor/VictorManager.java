@@ -26,8 +26,14 @@ import java.util.logging.Logger;
  * (victors), and their personal cosmetic on/off switches. Owns its own file
  * (victors.yml), saved through the shared atomic writer like the other stores.
  *
- * <p>Active hold-time only ever grows (AFK and offline time are excluded upstream by
- * the hold-time ticker), so once someone passes the threshold they stay a victor.
+ * <p>Dragonlord is earned by TENURE, not by played time: hold the egg for
+ * {@code victor.threshold-hours} of real elapsed time without losing it. Playtime can't
+ * buy it and can't be saved up — losing the egg restarts the clock at zero (see
+ * {@link #checkTenure}). Lifetime active hold-time is still tracked alongside it as a
+ * stat, and staleness is what stops a keeper from simply logging off for the week.
+ *
+ * <p>The victor set only ever grows: once crowned, a player stays a Dragonlord even
+ * after the egg moves on.
  */
 public final class VictorManager {
 
@@ -59,18 +65,50 @@ public final class VictorManager {
 
     // ── Active-time accrual ──────────────────────────────────────────────────────
 
-    /** Add active held time and promote the player to victor once they pass the threshold. */
+    /**
+     * Bank active held time as a lifetime stat. This no longer decides Dragonlord — see
+     * {@link #checkTenure} — it stays because "how long has this account really carried
+     * the egg" is worth keeping across the ladder resets that hand-offs cause.
+     */
     public void addActive(UUID uuid, long deltaMillis) {
         if (uuid == null || deltaMillis <= 0) {
             return;
         }
-        long total = activeHoldMillis.merge(uuid, deltaMillis, Long::sum);
+        activeHoldMillis.merge(uuid, deltaMillis, Long::sum);
+    }
+
+    // ── Tenure (the Dragonlord clock) ────────────────────────────────────────────
+
+    /**
+     * Promote the current keeper once they have held the egg, unbroken, for the configured
+     * number of real hours. {@code ownedSince} is the store's ownership stamp, so every
+     * hand-off, respawn reset, and staleness reclaim restarts the week for free — this
+     * method never has to know how the egg moved.
+     *
+     * <p>Called from the hold-time ticker with the keeper online, so the crowning flourish
+     * always has someone to play for. An offline keeper simply gets crowned on their next
+     * login: elapsed time keeps running either way, it is only the ceremony that waits.
+     */
+    public void checkTenure(UUID uuid, long ownedSince) {
+        if (uuid == null || ownedSince <= 0 || victors.contains(uuid) || revoked.contains(uuid)) {
+            // A manual revoke suppresses re-promotion until ownership changes — otherwise an
+            // already-earned keeper is re-added (and re-announced) on the very next tick.
+            return;
+        }
+        long held = System.currentTimeMillis() - ownedSince;
         long threshold = TimeUnit.HOURS.toMillis(plugin.config().getVictorThresholdHours());
-        // A manual revoke suppresses re-promotion until ownership changes — otherwise an
-        // already-earned owner is re-added (and re-announced) on the next accrual tick.
-        if (total >= threshold && !revoked.contains(uuid) && victors.add(uuid)) {
+        if (held >= threshold && victors.add(uuid)) {
             onEarnedVictor(uuid);
         }
+    }
+
+    /** Millis the current keeper still needs to hold the egg, or 0 once the week is served. */
+    public long tenureRemaining(long ownedSince) {
+        if (ownedSince <= 0) {
+            return TimeUnit.HOURS.toMillis(plugin.config().getVictorThresholdHours());
+        }
+        long threshold = TimeUnit.HOURS.toMillis(plugin.config().getVictorThresholdHours());
+        return Math.max(0L, threshold - (System.currentTimeMillis() - ownedSince));
     }
 
     private void onEarnedVictor(UUID uuid) {
@@ -80,10 +118,11 @@ public final class VictorManager {
             online.sendMessage(Msg.prefixed(plugin.config().getPrefix(),
                     plugin.config().getVictorEarnedMessage()));
         }
+        int hours = plugin.config().getVictorThresholdHours();
         plugin.history().appendSystem(EventType.VICTOR_EARNED, null,
-                name + " became a Dragonlord (reached the hold-time threshold)");
+                name + " became a Dragonlord (held the egg " + hours + "h unbroken)");
         plugin.inbox().post(Severity.INFO, "New Dragonlord",
-                name + " held the egg long enough to become a Dragonlord.", uuid);
+                name + " kept the egg for " + hours + " hours without losing it.", uuid);
         if (online != null) {
             plugin.playCoronation(online); // the crowning flourish
         }

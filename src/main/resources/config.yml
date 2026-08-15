@@ -189,12 +189,16 @@ void-safety:
                            # capped at 20: a wider gap could let a falling egg cross into the void unseen
 
 # ── Dragonlord (victor) cosmetics ──────────────────────────────────────────
-# Holding the egg builds up lifetime active hold-time (away time doesn't count, and it
-# never resets). Once a player passes threshold-hours they permanently become a
-# "Dragonlord" and unlock cosmetics: a sparkle aura and a chat/tab title. Players can
-# turn their own cosmetics on or off; admins can grant or revoke Dragonlord status.
+# Keep the egg for threshold-hours of REAL time -- not played time -- and you permanently
+# become a "Dragonlord" and unlock cosmetics: a sparkle aura and a chat/tab title. The
+# clock starts the moment you take the egg and restarts at zero if you ever lose it, to a
+# rival or to a reset, so the title says you HELD it, not that you once touched it. Grinding
+# playtime can't buy it, and logging off can't dodge it -- staleness-days above still
+# reclaims a parked egg, so the keeper has to stay engaged the whole week. Being crowned is
+# permanent: the egg moving on later doesn't take it back. Players can turn their own
+# cosmetics on or off; admins can grant or revoke Dragonlord status.
 victor:
-  threshold-hours: 168     # default: 168 (7 days of active holding) to become a Dragonlord
+  threshold-hours: 168     # default: 168 (7 real days of unbroken holding) to become a Dragonlord
   title: "&x&9&D&4&E&D&D&lD&x&A&7&6&0&D&E&lr&x&B&1&7&3&E&0&la&x&B&B&8&5&E&1&lg&x&C&5&9&7&E&2&lo&x&C&F&A&A&E&4&ln&x&D&9&B&C&E&5&ll&x&E&3&C&E&E&6&lo&x&E&D&E&1&E&8&lr&x&F&7&F&3&E&9&ld"    # ender-purple -> off-white bold gradient (pre-rendered hex so TAB/CMI/chat all display it)
   title-enabled: true      # default: true. master switch for the title
   particle-enabled: true   # default: true. master switch for the aura
