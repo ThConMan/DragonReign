@@ -112,7 +112,7 @@ public final class ConfigGui {
                 "Rescue the egg if it ever falls into the void"));
 
         inv.setItem(SLOT_AFK, toggle(c.isAfkEnabled(), "Away Check",
-                "Pause reward and Dragonlord time while the keeper is away (AFK)"));
+                "Pause reward time while the keeper is away (AFK)"));
 
         inv.setItem(SLOT_VICTOR_AURA, toggle(c.isVictorParticleEnabled(), "Dragonlord Aura",
                 "Master switch for the sparkle aura around Dragonlords"));

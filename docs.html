@@ -76,9 +76,9 @@
                 <div class="docs-grid-item"><h4>Egg compass</h4><p>Players near a placed egg get an action-bar arrow pointing at it — warmer the closer they get. Click-teleports are tracked too, so the arrow follows the egg's vanilla blink instead of pointing at where it used to be.</p></div>
                 <div class="docs-grid-item"><h4>Hold rewards</h4><p>The keeper earns escalating, configurable rewards while the egg is actually <strong>on them</strong> — placing it down pauses the reward clock, so a vaulted trophy doesn't pay but carrying the risk does. Each tier is a list of console commands, so pay out items, money (CMI/Vault), XP, effects, or vouchers from other plugins (e.g. a TempFly flight voucher). The ladder resets when the egg changes hands, and players can read the <span class="mono">/dr rewards</span> book to see what's on offer.</p></div>
                 <div class="docs-grid-item"><h4>Kill bonus</h4><p>The keeper's PvP kills also fill the reward bar, so a kill can complete a tier just like held time. Gated hard against alt-farming: killing an IP-linked account, a fresh account (under a playtime minimum), or the same victim again within a cooldown all count for nothing. Toggle it off with <span class="mono">kill-bonus.enabled</span>.</p></div>
-                <div class="docs-grid-item"><h4>Anti-AFK</h4><p>Rewards and Dragonlord time only build while you're truly playing. AFK pools and auto-clickers don't count.</p></div>
+                <div class="docs-grid-item"><h4>Anti-AFK</h4><p>Reward time only builds while you're truly playing. AFK pools and auto-clickers don't count.</p></div>
                 <div class="docs-grid-item"><h4>Never lost</h4><p>A loose egg never despawns and shrugs off fire, lava, cactus, TNT and creepers — and explosions can't blow up the placed egg block either. If it falls into the void it's rebuilt at the End, and if anything ever deletes it outright, a watchdog hands it back to the keeper and alerts staff. There is always exactly one egg.</p></div>
-                <div class="docs-grid-item"><h4>Dragonlord aura</h4><p>Hold the egg long enough (default 7 days of active time) to permanently earn the Dragonlord title and a living aura: shimmering spirit-orbs that wander around you, <em>livewire</em> surges, lightning arcs between orbs, a coronation flourish, and reactivity to combat — every layer configurable.</p></div>
+                <div class="docs-grid-item"><h4>Dragonlord aura</h4><p>Keep the egg for a full week of real time — lose it once and the clock restarts — to permanently earn the Dragonlord title and a living aura: shimmering spirit-orbs that wander around you, <em>livewire</em> surges, lightning arcs between orbs, a coronation flourish, and reactivity to combat — every layer configurable.</p></div>
                 <div class="docs-grid-item"><h4>Staff inbox</h4><p>Alt/IP flags, dupe cleanups, and respawns alert online admins and queue for the rest.</p></div>
                 <div class="docs-grid-item"><h4>History log</h4><p>Every meaningful egg event is recorded and browsable in-game.</p></div>
             </div>
@@ -128,7 +128,7 @@
                         <tr><td><span class="mono">dragonreign.command.cancel</span></td><td>op</td><td>Cancel a countdown.</td></tr>
                         <tr><td><span class="mono">dragonreign.command.victor</span></td><td>op</td><td>Grant/revoke Dragonlord.</td></tr>
                         <tr><td><span class="mono">dragonreign.command.reload</span></td><td>op</td><td>Reload the config.</td></tr>
-                        <tr><td><span class="mono">dragonreign.victor</span></td><td>unregistered</td><td>Marks a Dragonlord — earned at the time threshold or granted explicitly. Deliberately not registered in plugin.yml so OP and <span class="mono">*</span> wildcards never auto-grant it.</td></tr>
+                        <tr><td><span class="mono">dragonreign.victor</span></td><td>unregistered</td><td>Marks a Dragonlord — earned by serving the full tenure or granted explicitly. Deliberately not registered in plugin.yml so OP and <span class="mono">*</span> wildcards never auto-grant it.</td></tr>
                         <tr><td><span class="mono">dragonreign.admin</span></td><td>op</td><td>All of the above admin nodes.</td></tr>
                     </tbody>
                 </table>
@@ -161,7 +161,7 @@ kill-bonus:
   same-victim-cooldown-hours: 24 # can't farm the same player
 
 victor:
-  threshold-hours: 168            # active hold time to become a Dragonlord (7 days)
+  threshold-hours: 168            # real hours of unbroken holding (7 days); losing the egg restarts it
   title: "&amp;6Dragonlord"           # the title (a rendered gradient by default)
   particle: DUST_COLOR_TRANSITION # aura motes; shimmer aura-color -> aura-color-2
   aura-color: '#9D4EDD'           # gradient start   (aura-color-2: '#4ED9FF' = end)

@@ -549,6 +549,7 @@ public final class ConfigManager {
 
     // ── Victor prestige cosmetics (v1.2) ──────────────────────────────────────
 
+    /** Hours of unbroken ownership — real elapsed time — that earn the Dragonlord title. */
     public int getVictorThresholdHours() {
         return Math.max(1, cfg().getInt("victor.threshold-hours", 168));
     }

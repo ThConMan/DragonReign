@@ -69,14 +69,14 @@ conceptual single egg and is saved in `data.yml`.
     the egg is actually **on** the keeper — in their inventory, offhand, or hand — and they're
     really playing. Placing the egg down pauses the reward clock: a trophy sitting safe in a
     vault shouldn't pay, carrying the weight and the risk should. (Standing near your placed
-    egg still counts toward Dragonlord lifetime time and keeps the egg fresh — it just doesn't
-    pay.) Players can read a configurable **Dragon Egg Rewards** book with `/dr rewards` to
+    egg keeps the egg fresh — it just doesn't pay. The Dragonlord week runs on ownership and
+    is unaffected either way.) Players can read a configurable **Dragon Egg Rewards** book with `/dr rewards` to
     see exactly what holding the egg pays out.
 12. **Staleness respawn** *(default on)* — if the egg sits untouched for `staleness-days`
     (default 10) it respawns even while the owner is online, so the egg can't be parked
     forever. Holding it idle does not count as touching it.
-13. **Away check** *(default on)* — reward time and Dragonlord time only build up while the
-    owner is really playing. The owner counts as away if CMI or EssentialsX (when installed)
+13. **Away check** *(default on)* — reward time and staleness freshness only build up while
+    the owner is really playing (the Dragonlord week is wall-clock and ignores this). The owner counts as away if CMI or EssentialsX (when installed)
     says so, **or** if the built-in check sees no real travel for `idle-seconds` — and that
     built-in check always runs, so a stationary auto-clicker is caught even when another
     plugin reports them active. Small repeated motion (an AFK pool, a tiny loop) doesn't count.
@@ -86,9 +86,12 @@ conceptual single egg and is saved in `data.yml`.
     falling egg block ever slips into the void, it is rebuilt on the End fountain and staff
     get an alert. And if some unknown path ever deletes the egg outright, a watchdog notices
     the keeper's egg is gone within seconds, hands it back, and tells staff.
-15. **Dragonlord cosmetics** *(default on)* — holding the egg builds up lifetime active
-    hold-time (away time excluded, and it never resets). Past `threshold-hours` (default 168 =
-    7 days) the player permanently becomes a **Dragonlord** and unlocks two cosmetics: a
+15. **Dragonlord cosmetics** *(default on)* — keep the egg for `threshold-hours` of **real
+    elapsed time** (default 168 = 7 days) without ever losing it and the player permanently
+    becomes a **Dragonlord**. The clock starts when you take the egg and restarts at zero
+    whenever it changes hands or resets, so the title marks a week of *defending* it, not a
+    week of playtime — grinding hours can't buy it, and logging off can't dodge it, because
+    staleness still reclaims a parked egg. Being crowned unlocks two cosmetics: a
     sparkle aura and a chat/tab/nameplate title. The title is published through PlaceholderAPI
     (`%dragonreign_title%`), so any plugin that reads PlaceholderAPI (TAB, CMI,
     CustomNameplates, chat-format plugins) can show it. Players toggle their own cosmetics;
@@ -140,7 +143,7 @@ its permission does **nothing**: no error, no reply.
 | `dragonreign.gui.teleport` | op | Use the teleport-to-egg button in the config GUI. |
 | `dragonreign.command.victor` | op | Grant/revoke Dragonlord status (`/dr victor`). |
 | `dragonreign.command.cosmetics` | everyone | Player cosmetic toggles (`/dr cosmetics`, `particle`, `title`). |
-| `dragonreign.victor` | false | Marks a player as a Dragonlord. Granted automatically at the hold-time threshold; admins can also grant it directly. |
+| `dragonreign.victor` | false | Marks a player as a Dragonlord. Granted automatically once the tenure threshold is served; admins can also grant it directly. |
 | `dragonreign.admin` | op | Parent node — grants every `command.*` and `gui.*` node above. |
 
 Every capability is its own node, so you can hand a helper exactly one (e.g. only
@@ -223,7 +226,7 @@ void-safety:
   check-ticks: 20
 
 victor:
-  threshold-hours: 168       # active holding time to become a Dragonlord
+  threshold-hours: 168       # real hours of unbroken holding to become a Dragonlord
   title: "&6Dragonlord"
   title-enabled: true
   particle-enabled: true
@@ -314,18 +317,18 @@ substituted at send time.
 | `rewards.enabled` | `true` | Reward the owner for active holding time. |
 | `rewards.interval-minutes` | `60` | Active holding time needed for each reward. |
 | `rewards.reset-on-loss` | `true` | Losing the egg resets the owner back to the first reward tier. |
-| `rewards.carried-only` | `true` | Rewards only build while the egg is in the keeper's inventory; a placed egg pauses the reward clock. Set `false` to also pay near-the-placed-egg time (the old behaviour). Dragonlord lifetime progress is unaffected either way. |
+| `rewards.carried-only` | `true` | Rewards only build while the egg is in the keeper's inventory; a placed egg pauses the reward clock. Set `false` to also pay near-the-placed-egg time (the old behaviour). The Dragonlord week is unaffected either way. |
 | `rewards.tiers` | *(see above)* | The reward ladder; each entry is a list of console commands run with `%player%` / `%tier%` substituted. Because they're plain console commands you can pay out money (e.g. `cmi money give %player% 25000` via CMI/Vault), items, XP, effects, or hand out vouchers from other plugins (e.g. a TempFly flight voucher via `tempfly give %player% 5m`). |
 | `rewards.book.enabled` | `true` | Enable the `/dr rewards` written book. |
 | `rewards.book.title` | `Dragon Egg Rewards` | Book title (MiniMessage). |
 | `rewards.book.author` | `DragonReign` | Book author (MiniMessage). |
 | `rewards.book.pages` | *(built-in default)* | A list where each entry is one book page (MiniMessage). Remove the list entirely to use the built-in default pages. Pages render on cream parchment, so use dark colours. |
-| `afk.enabled` | `true` | Pause reward and Dragonlord time while the owner is away. |
+| `afk.enabled` | `true` | Pause reward time and staleness freshness while the owner is away. |
 | `afk.idle-seconds` | `300` | No real travel for this long counts as away (built-in check; small repeated motion doesn't count). |
 | `void-safety.enabled` | `true` | Rescue the egg to the End if it falls into the void. |
 | `void-safety.fireproof` | `true` | The egg can't be destroyed: a loose egg is immune to fire, lava, cactus and explosions (and floats out of liquids), and explosions can't break the placed egg block. |
 | `void-safety.check-ticks` | `4` | How often the loose egg's height/buoyancy is checked. |
-| `victor.threshold-hours` | `168` | Active holding time to become a Dragonlord. |
+| `victor.threshold-hours` | `168` | Real elapsed hours of unbroken holding to become a Dragonlord. Losing the egg restarts the clock. |
 | `victor.title` | `&6Dragonlord` | The Dragonlord title (legacy `&` colour codes). |
 | `victor.title-enabled` | `true` | Master switch for the title. |
 | `victor.particle-enabled` | `true` | Master switch for the aura. |
@@ -334,7 +337,7 @@ substituted at send time.
 | `victor.particle-interval-ticks` | `40` | How often the aura shows. |
 | `victor.luckperms-meta` | `false` | Also write the title as a LuckPerms meta value (`dragonreign-title`). |
 | `hold-time.accrual-ticks` | `100` | Advanced: how often active hold-time is sampled. |
-| `hold-time.require-presence` | `true` | Only accrue hold-time while the owner is carrying the egg or near the placed egg. (With `rewards.carried-only` on, near-placed time feeds Dragonlord progress and staleness refresh but not rewards.) |
+| `hold-time.require-presence` | `true` | Only accrue hold-time while the owner is carrying the egg or near the placed egg. (With `rewards.carried-only` on, near-placed time feeds the staleness refresh but not rewards.) |
 | `hold-time.presence-radius` | `16` | Blocks from the placed egg that count as the owner being "with it". |
 | `respawn-countdown.enabled` | `true` | Use a timed contest window instead of an instant respawn. |
 | `respawn-countdown.duration-seconds` | `300` | Length of the countdown. |

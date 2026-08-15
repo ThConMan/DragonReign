@@ -124,7 +124,7 @@ rewards:
   # Rewards only build while the egg is ON the keeper — in their inventory, offhand, or
   # hand. Placing it down PAUSES the reward clock (a trophy sitting safe in a vault
   # shouldn't pay; carrying the weight and the risk should). Placed time still counts
-  # toward lifetime Dragonlord progress — it just doesn't pay rewards.
+  # toward the Dragonlord week — that clock runs on ownership, not on carrying.
   carried-only: true       # default: true. false = placed-and-nearby time pays too (old behaviour)
   tiers:                   # each line is one reward = a list of console commands
     - ["give %player% diamond 4"]
@@ -151,7 +151,7 @@ rewards:
 # Besides holding the egg over time, the keeper can push their reward bar forward by
 # KILLING other players. Each qualifying kill banks 'minutes' of hold-time onto the bar,
 # so a kill can complete an interval and pay out a tier just like held time does. This
-# feeds ONLY the hold-reward ladder -- never the lifetime Dragonlord progress.
+# feeds ONLY the hold-reward ladder -- never the Dragonlord tenure clock.
 #
 # Kills are gated hard so you can't farm the bar with your own alts: the victim must be a
 # real, independent, established account.
@@ -166,7 +166,8 @@ kill-bonus:
                                    # VPN/school) aren't treated as an alt ring. Works even with strict-ownership off.
 
 # ── Away (AFK) check ───────────────────────────────────────────────────────
-# Reward time and Dragonlord time only build up while the owner is really playing.
+# Reward time and staleness freshness only build up while the owner is really playing.
+# (The Dragonlord week is wall-clock and ignores this — see the victor section.)
 # The owner counts as away if CMI or EssentialsX (when installed) says so, OR if they
 # haven't actually travelled for idle-seconds. The built-in travel check always runs too,
 # so a stationary auto-clicker is still caught even when another plugin reports "active".

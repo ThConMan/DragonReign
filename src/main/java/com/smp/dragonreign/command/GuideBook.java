@@ -42,8 +42,8 @@ final class GuideBook {
             + "<dark_red>You must be actually playing</dark_red> — no AFK farming. Lose the egg, lose the streak.</black>",
 
         "<bold><gradient:#3D1466:#7B2FB5>Dragonlord</gradient></bold>\n\n"
-            + "<black>Hold the egg long enough and you become a <bold><dark_purple>Dragonlord</dark_purple></bold> — for good.\n\n"
-            + "You earn a glowing <dark_purple>aura</dark_purple> and a title beside your name.</black>",
+            + "<black>Keep the egg for a <dark_purple>full week</dark_purple> — real days, not playtime — and you become a <bold><dark_purple>Dragonlord</dark_purple></bold> for good.\n\n"
+            + "<dark_red>Lose it once and the week starts over.</dark_red> You earn a glowing <dark_purple>aura</dark_purple> and a title beside your name.</black>",
 
         "<bold><dark_purple>Your Commands</dark_purple></bold>\n\n"
             + "<dark_purple>/giveegg <name></dark_purple> <black>- hand it over</black>\n"
