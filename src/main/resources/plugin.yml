@@ -1,5 +1,5 @@
 name: DragonReign
-version: 1.4.1
+version: 1.4.2
 main: com.smp.dragonreign.DragonReign
 api-version: '1.21'
 author: ThConMan
@@ -10,7 +10,7 @@ softdepend: [PlaceholderAPI, LuckPerms, CMI, Essentials]
 commands:
   dragonreign:
     description: DragonReign admin and info commands.
-    usage: /dr <guide|rewards|gui|log|inbox|respawn [force]|cancel|reload|victor|cosmetics|particle|title|info>
+    usage: /dr <event [on|off]|guide|rewards|gui|log|inbox|respawn [force]|cancel|reload|victor|cosmetics|particle|title|info>
     aliases: [dr, dreign, degg]
   giveegg:
     description: Hand the Dragon Egg you are holding to another online player.

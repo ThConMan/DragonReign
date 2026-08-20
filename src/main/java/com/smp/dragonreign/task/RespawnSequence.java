@@ -62,6 +62,12 @@ public final class RespawnSequence {
         }
         plugin.history().appendSystem(EventType.EGG_SPAWNED, spawned.get(), "fresh egg on the End fountain");
 
+        // An admin putting the egg back on the fountain is the ordinary way an event ends, so
+        // the mode lifts itself here — after the spawn is confirmed, never before. The
+        // deferred-spawn branch above returns without reaching this line, which is right:
+        // nothing was put back into play, so the event is still on.
+        plugin.endEventMode("the egg respawned on the fountain");
+
         // 2) Erase the tracked egg block — UNLESS it's the very block the spawner just
         //    (re)used. spawnAtExitPortal is idempotent: if the tracked egg already sat on
         //    the fountain apex it placed nothing and reported that same block. Erasing it

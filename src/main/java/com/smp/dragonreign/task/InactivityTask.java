@@ -32,6 +32,13 @@ public final class InactivityTask extends BukkitRunnable {
             return;
         }
         EggDataStore store = plugin.store();
+        if (store.isEventMode()) {
+            // A staged event owns the egg's whereabouts right now. Both triggers below are
+            // automatic, and both would drag the egg back to the fountain mid-tournament.
+            // Gating here rather than inside CountdownManager.requestRespawn keeps every
+            // manual admin route (/dr respawn, /dr respawn force) working normally.
+            return;
+        }
         UUID owner = store.getOwner();
         if (owner == null) {
             // An unowned egg (e.g. just respawned on the fountain) never triggers.

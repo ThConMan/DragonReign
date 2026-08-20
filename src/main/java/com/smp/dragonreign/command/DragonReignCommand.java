@@ -94,6 +94,51 @@ public final class DragonReignCommand implements TabExecutor {
                 }
                 plugin.countdown().cancelByAdmin(sender);
             }
+            case "event" -> {
+                if (!sender.hasPermission(Perms.RESPAWN)) {
+                    return true;
+                }
+                boolean on = plugin.store().isEventMode();
+                String arg = args.length >= 2 ? args[1].toLowerCase() : "status";
+                switch (arg) {
+                    case "on" -> {
+                        if (on) {
+                            sender.sendMessage(Msg.prefixed(config.getPrefix(),
+                                    "<yellow>Event mode is already on.</yellow>"));
+                            return true;
+                        }
+                        plugin.store().setEventMode(true);
+                        // A countdown already ticking would respawn the egg mid-event, which
+                        // is the exact thing event mode exists to prevent. Stopping it here
+                        // means turning the mode on is enough on its own — no second command
+                        // to remember while an event is about to start.
+                        if (plugin.countdown().isActive()) {
+                            plugin.countdown().cancelByAdmin(sender);
+                        }
+                        plugin.saveAsync();
+                        sender.sendMessage(Msg.prefixed(config.getPrefix(),
+                                "<green>Event mode <white>on</white>. Inactivity and staleness respawns"
+                                        + " are paused.</green>"));
+                        sender.sendMessage(Msg.mm("<gray>It switches itself off when the egg is"
+                                + " back in play — respawned on the fountain, or carried again.</gray>"));
+                    }
+                    case "off" -> {
+                        if (!on) {
+                            sender.sendMessage(Msg.prefixed(config.getPrefix(),
+                                    "<yellow>Event mode is already off.</yellow>"));
+                            return true;
+                        }
+                        plugin.store().setEventMode(false);
+                        plugin.saveAsync();
+                        sender.sendMessage(Msg.prefixed(config.getPrefix(),
+                                "<green>Event mode <white>off</white>. Automatic respawns are running"
+                                        + " again.</green>"));
+                    }
+                    default -> sender.sendMessage(Msg.prefixed(config.getPrefix(),
+                            on ? "<green>Event mode is <white>on</white> — automatic respawns are paused.</green>"
+                               : "<gray>Event mode is <white>off</white> — automatic respawns are running.</gray>"));
+                }
+            }
             case "reload" -> {
                 if (!sender.hasPermission(Perms.RELOAD)) {
                     return true;
@@ -312,6 +357,12 @@ public final class DragonReignCommand implements TabExecutor {
                 + "<gray>, respawn: " + onOff(c.isRespawnEnabled())
                 + "<gray>, announce: " + onOff(c.isAnnounceEnabled()) + "</gray>"));
         sender.sendMessage(Msg.mm("<gray>Countdown: <white>" + plugin.countdown().statusText() + "</white></gray>"));
+        // Loud on purpose. Event mode silently disables the automatic respawns, so if it is
+        // ever left on by accident this line is where someone notices.
+        if (plugin.store().isEventMode()) {
+            sender.sendMessage(Msg.mm("<gold>Event mode: <white>ON</white> — inactivity and staleness"
+                    + " respawns are paused until the egg is back in play.</gold>"));
+        }
 
         EggLocation loc = plugin.store().getLocation();
         sender.sendMessage(Msg.mm("<gray>Placed at: <white>" + (loc != null ? loc.compact() : "not placed (held or gone)") + "</white></gray>"));
@@ -373,7 +424,10 @@ public final class DragonReignCommand implements TabExecutor {
                 subs.add("history");
             }
             if (sender.hasPermission(Perms.INBOX)) subs.add("inbox");
-            if (sender.hasPermission(Perms.RESPAWN)) subs.add("respawn");
+            if (sender.hasPermission(Perms.RESPAWN)) {
+                subs.add("respawn");
+                subs.add("event");
+            }
             if (sender.hasPermission(Perms.CANCEL)) subs.add("cancel");
             if (sender.hasPermission(Perms.RELOAD)) subs.add("reload");
             if (sender.hasPermission(Perms.CMD_VICTOR)) subs.add("victor");
@@ -397,6 +451,16 @@ public final class DragonReignCommand implements TabExecutor {
             if ("force".startsWith(args[1].toLowerCase())) {
                 return List.of("force");
             }
+        }
+        // `/dr event <on|off>`
+        if (args.length == 2 && args[0].equalsIgnoreCase("event") && sender.hasPermission(Perms.RESPAWN)) {
+            List<String> out = new ArrayList<>();
+            for (String s : List.of("on", "off")) {
+                if (s.startsWith(args[1].toLowerCase())) {
+                    out.add(s);
+                }
+            }
+            return out;
         }
         // `/dr victor <grant|revoke> <player>`
         if (args[0].equalsIgnoreCase("victor") && sender.hasPermission(Perms.CMD_VICTOR)) {

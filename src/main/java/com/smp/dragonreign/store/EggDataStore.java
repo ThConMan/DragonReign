@@ -102,6 +102,7 @@ public final class EggDataStore {
         }
         state.rewardTier = Math.max(0, data.getInt("egg.reward-tier", 0));
         state.rewardProgressMillis = Math.max(0L, data.getLong("egg.reward-progress", 0L));
+        state.eventMode = data.getBoolean("egg.event-mode", false);
 
         ConfigurationSection seen = data.getConfigurationSection("last-seen");
         if (seen != null) {
@@ -290,6 +291,31 @@ public final class EggDataStore {
         return uuid != null && state.pendingErase.remove(uuid);
     }
 
+    // ── Event mode ───────────────────────────────────────────────────────────
+
+    /**
+     * Is the egg currently being run as a staged event? While this is on, the automatic
+     * respawns (owner inactivity and staleness) stand down, so an egg that is deliberately
+     * out of play — sitting on a podium, waiting for a tournament to start — cannot be
+     * yanked back to the fountain mid-event by a timer.
+     *
+     * <p>It deliberately does not restrict anything an admin does by hand. `/dr respawn`
+     * and `/dr respawn force` keep working exactly as before: the point is to stop the
+     * clock, not to stop the operator.
+     */
+    public boolean isEventMode() {
+        return state.eventMode;
+    }
+
+    /** Turn event mode on or off. Returns true if this actually changed anything. */
+    public boolean setEventMode(boolean on) {
+        if (state.eventMode == on) {
+            return false;
+        }
+        state.eventMode = on;
+        return true;
+    }
+
     // ── Pending give-back (death-held eggs, persisted) ───────────────────────
 
     /** Record that {@code count} egg(s) are owed back to this player (e.g. pulled from death drops). */
@@ -405,6 +431,12 @@ public final class EggDataStore {
         }
         if (snap.rewardProgressMillis > 0) {
             out.set("egg.reward-progress", snap.rewardProgressMillis);
+        }
+        // Read straight off live state rather than the snapshot: this method already runs on
+        // the main thread (only the disk write is off-thread), and threading one boolean
+        // through EggSnapshot's constructor would touch every caller for no benefit.
+        if (state.eventMode) {
+            out.set("egg.event-mode", true);
         }
 
         // Only the current owner's last-seen is ever read back; persisting the whole

@@ -12,6 +12,8 @@ import com.smp.dragonreign.gui.HistoryGui;
 import com.smp.dragonreign.gui.InboxGui;
 import com.smp.dragonreign.hook.LuckPermsHook;
 import com.smp.dragonreign.inbox.Inbox;
+import com.smp.dragonreign.inbox.Severity;
+import com.smp.dragonreign.model.EventType;
 import com.smp.dragonreign.listener.ContainerProtectionListener;
 import com.smp.dragonreign.listener.DropProtectionListener;
 import com.smp.dragonreign.listener.EggTrackingListener;
@@ -295,6 +297,26 @@ public final class DragonReign extends JavaPlugin {
             voidTask.cancel();
             voidTask = null;
         }
+    }
+
+    /**
+     * End event mode because the egg is demonstrably back in play, and say why.
+     *
+     * <p>The whole point of the auto-exit is that nobody has to remember to switch it off.
+     * A mode you must remember to leave is a mode that gets left on, and an event mode left
+     * on silently disables the inactivity and staleness respawns — the egg could then sit
+     * abandoned in a chest for a month with nothing bringing it back. So this is called from
+     * every route the egg has back into play, and does nothing when the mode is already off.
+     */
+    public void endEventMode(String reason) {
+        if (!store.setEventMode(false)) {
+            return; // wasn't on — nothing to announce
+        }
+        history.appendSystem(EventType.ADMIN, null, "event mode ended — " + reason);
+        inbox.post(Severity.INFO, "Event mode ended",
+                "The egg is back in play (" + reason + "), so event mode switched itself off."
+                        + " Inactivity and staleness respawns are running again.");
+        saveAsync();
     }
 
     /** Re-read config.yml and restart tasks so any changed intervals take effect. */

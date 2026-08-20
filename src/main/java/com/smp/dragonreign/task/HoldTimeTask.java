@@ -58,6 +58,14 @@ public final class HoldTimeTask extends BukkitRunnable {
             plugin.afk().reset();
             return;
         }
+        // The other way an event ends: the egg is in someone's hands again. This catches the
+        // routes a fountain respawn doesn't — an admin handing it over with /giveegg, or a
+        // player picking up an egg placed by hand for the event. Checked here because this
+        // task already samples every few seconds and sees every ownership state, so no route
+        // back into play can leave the server stuck in event mode.
+        if (store.isEventMode()) {
+            plugin.endEventMode("it is being carried again");
+        }
         if (!owner.equals(lastOwner)) {
             // Hand-off: start a fresh window so time never carries across owners.
             lastOwner = owner;

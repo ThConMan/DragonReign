@@ -28,6 +28,13 @@ public final class EggState {
     public int rewardTier;
     public long rewardProgressMillis;
 
+    // Event mode: the egg is being run as a staged event (a tournament, a hand-off
+    // ceremony) and the automatic respawns must keep their hands off it until an admin
+    // puts the egg back in play by hand. Persisted, because an event that spans a restart
+    // would otherwise quietly revert to normal halfway through. It clears itself once the
+    // egg is genuinely back in play, so nobody has to remember to switch it off.
+    public boolean eventMode;
+
     public final ConcurrentHashMap<UUID, Long> lastSeen = new ConcurrentHashMap<>();
     public final Set<UUID> pendingErase = ConcurrentHashMap.newKeySet();
 
