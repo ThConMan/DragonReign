@@ -299,6 +299,37 @@ public final class EggDataStore {
         }
     }
 
+    /**
+     * How many eggs are owed to this player right now, <em>without</em> consuming them.
+     *
+     * <p>This is the "egg is in transit" signal. Between death and respawn the egg exists
+     * only as this record — not carried, not placed, not loose — so any code deciding
+     * whether the egg still exists has to consult it. Anything that doesn't will conclude
+     * the egg was deleted and hand out a second one.
+     */
+    public int peekPendingGive(UUID uuid) {
+        if (uuid == null) {
+            return 0;
+        }
+        Integer owed = state.pendingGive.get(uuid);
+        return owed != null ? owed : 0;
+    }
+
+    /** Is an egg owed to anyone at all — i.e. is the egg mid-flight through someone's death? */
+    public boolean hasAnyPendingGive() {
+        for (Integer v : state.pendingGive.values()) {
+            if (v != null && v > 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Every outstanding give-back, for the audit. Never null. */
+    public Map<UUID, Integer> pendingGiveView() {
+        return new LinkedHashMap<>(state.pendingGive);
+    }
+
     /** Take and clear the eggs owed to this player; returns 0 if none. */
     public int consumePendingGive(UUID uuid) {
         if (uuid == null) {
