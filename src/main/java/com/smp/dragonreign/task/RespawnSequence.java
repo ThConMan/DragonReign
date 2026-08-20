@@ -7,6 +7,9 @@ import com.smp.dragonreign.model.EggLocation;
 import com.smp.dragonreign.model.EventType;
 import com.smp.dragonreign.store.EggDataStore;
 import com.smp.dragonreign.util.Egg;
+import org.bukkit.entity.Entity;
+
+import java.util.List;
 import com.smp.dragonreign.util.EndPortalEggSpawner;
 import com.smp.dragonreign.util.Players;
 import org.bukkit.Bukkit;
@@ -37,6 +40,14 @@ public final class RespawnSequence {
         AnnouncementService announce = plugin.announce();
 
         String oldOwnerName = Players.name(oldOwner);
+
+        // 0) Note every egg already loose in the world, BEFORE the new one exists. The
+        //    stray sweep in step 3 clears inventories and ender chests but never looked at
+        //    the ground, so an egg dropped and left there survived the respawn and became a
+        //    second egg. Snapshotting first (rather than re-scanning in step 3) means the
+        //    freshly spawned egg can never end up in this list — including the moment it
+        //    spends as a falling block if the apex block below it is ever missing.
+        List<Entity> preExistingLoose = Egg.collectLooseEggs();
 
         // 1) Spawn the fresh egg FIRST. If the End isn't available we must not erase
         //    the existing egg — otherwise the single special egg is lost forever with
@@ -77,6 +88,17 @@ public final class RespawnSequence {
                 keeperStripped += got;
             } else {
                 otherStripped += got;
+            }
+        }
+
+        // Remove the eggs that were lying on the ground before this respawn began. They are
+        // strays by the same rule as a stashed copy: the egg now lives on the fountain, and
+        // nothing else may coexist with it. Counted as "other" because a loose egg belongs
+        // to nobody — it is not the single copy the keeper is entitled to be holding.
+        for (Entity loose : preExistingLoose) {
+            if (loose.isValid() && !loose.isDead()) {
+                otherStripped += Egg.looseCount(loose);
+                loose.remove();
             }
         }
 

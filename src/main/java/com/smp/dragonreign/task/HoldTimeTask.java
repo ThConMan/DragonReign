@@ -8,10 +8,6 @@ import com.smp.dragonreign.store.EggDataStore;
 import com.smp.dragonreign.util.Egg;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
-import org.bukkit.entity.FallingBlock;
-import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -203,7 +199,7 @@ public final class HoldTimeTask extends BukkitRunnable {
         // is populated from an ItemSpawnEvent that may never fire for some drop paths. So
         // before conjuring an egg, go and look. This scan only runs at the moment of restore,
         // never on the ordinary sample, so the common path stays free.
-        if (looseEggExistsAnywhere()) {
+        if (Egg.anyLooseEgg()) {
             missingSamples = 0;
             carriedSeen = false;
             plugin.inbox().post(Severity.INFO, "Phantom-loss check stood down",
@@ -227,25 +223,4 @@ public final class HoldTimeTask extends BukkitRunnable {
         plugin.saveAsync();
     }
 
-    /**
-     * Authoritative sweep for a loose egg — a dropped item or a falling block — across every
-     * loaded world. Unlike {@code VoidGuardian.hasLooseEgg()} this asks the server rather
-     * than a cached reference, so it still sees the egg when the tracker never caught the
-     * spawn, was disabled by config, or lost its handle across a chunk unload or restart.
-     */
-    private boolean looseEggExistsAnywhere() {
-        for (World world : Bukkit.getWorlds()) {
-            for (Item item : world.getEntitiesByClass(Item.class)) {
-                if (Egg.isDragonEgg(item.getItemStack())) {
-                    return true;
-                }
-            }
-            for (FallingBlock fb : world.getEntitiesByClass(FallingBlock.class)) {
-                if (fb.getBlockData().getMaterial() == Material.DRAGON_EGG) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
 }

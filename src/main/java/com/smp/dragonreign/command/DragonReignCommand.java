@@ -4,6 +4,7 @@ import com.smp.dragonreign.DragonReign;
 import com.smp.dragonreign.Perms;
 import com.smp.dragonreign.config.ConfigManager;
 import com.smp.dragonreign.model.EggLocation;
+import com.smp.dragonreign.util.EggAudit;
 import com.smp.dragonreign.util.Msg;
 import com.smp.dragonreign.util.Players;
 import org.bukkit.command.Command;
@@ -99,6 +100,24 @@ public final class DragonReignCommand implements TabExecutor {
                 }
                 plugin.reloadEverything();
                 sender.sendMessage(Msg.prefixed(config.getPrefix(), "<green>Configuration reloaded.</green>"));
+            }
+            case "audit" -> {
+                if (!sender.hasPermission(Perms.ADMININFO)) {
+                    return true;
+                }
+                EggAudit audit = EggAudit.run(plugin);
+                String colour = audit.total() == 1 ? "<green>" : "<red>";
+                sender.sendMessage(Msg.prefixed(config.getPrefix(),
+                        colour + Msg.escape(audit.headline()) + "</" + colour.substring(1)));
+                for (EggAudit.Finding f : audit.findings()) {
+                    sender.sendMessage(Msg.mm("<gray> - </gray><white>"
+                            + Msg.escape(f.where()) + "</white>"
+                            + (f.count() > 0 ? " <gray>x</gray><yellow>" + f.count() + "</yellow>" : "")));
+                }
+                // Printed on every run, not only on a bad result: a clean number here reads
+                // very easily as "the tournament is clean", and it cannot mean that.
+                sender.sendMessage(Msg.mm("<dark_gray>Not searched: offline players, and"
+                        + " containers in unloaded chunks.</dark_gray>"));
             }
             case "cosmetics" -> {
                 if (!sender.hasPermission(Perms.COSMETICS)) {
@@ -342,7 +361,10 @@ public final class DragonReignCommand implements TabExecutor {
             // Only suggest what the sender can actually run — no probing the command's shape.
             List<String> subs = new ArrayList<>();
             if (sender.hasPermission(Perms.INFO)) subs.add("info");
-            if (sender.hasPermission(Perms.ADMININFO)) subs.add("admininfo");
+            if (sender.hasPermission(Perms.ADMININFO)) {
+                subs.add("admininfo");
+                subs.add("audit");
+            }
             if (sender.hasPermission(Perms.GUIDE)) subs.add("guide");
             if (sender.hasPermission(Perms.REWARDS)) subs.add("rewards");
             if (sender.hasPermission(Perms.GUI)) subs.add("gui");

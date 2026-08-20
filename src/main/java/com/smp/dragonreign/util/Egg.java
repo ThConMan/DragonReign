@@ -1,6 +1,10 @@
 package com.smp.dragonreign.util;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.World;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.FallingBlock;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
@@ -136,6 +140,50 @@ public final class Egg {
             }
         }
         return removed;
+    }
+
+    /**
+     * Every dragon egg currently loose in the world — dropped items and falling blocks —
+     * across all loaded worlds.
+     *
+     * <p>"Loose" is a legitimate place for the egg to be: it is what the ground between
+     * two players looks like. Several systems decide whether the egg still exists, and any
+     * of them that forgets this form will either conjure a replacement for an egg that is
+     * lying right there, or spawn a fresh one on the fountain while the old one waits in the
+     * grass. Both end in two eggs, so this lives in one place and gets reused.
+     *
+     * <p>Asks the server directly rather than reading a cached handle, so it still works
+     * when the loose-egg tracker never saw the spawn, was switched off by config, or lost
+     * its reference across a restart.
+     */
+    public static List<Entity> collectLooseEggs() {
+        List<Entity> found = new ArrayList<>();
+        for (World world : Bukkit.getWorlds()) {
+            for (Item item : world.getEntitiesByClass(Item.class)) {
+                if (isDragonEgg(item.getItemStack())) {
+                    found.add(item);
+                }
+            }
+            for (FallingBlock fb : world.getEntitiesByClass(FallingBlock.class)) {
+                if (fb.getBlockData().getMaterial() == Material.DRAGON_EGG) {
+                    found.add(fb);
+                }
+            }
+        }
+        return found;
+    }
+
+    /** Is any egg loose in the world right now? */
+    public static boolean anyLooseEgg() {
+        return !collectLooseEggs().isEmpty();
+    }
+
+    /** How many egg items a loose entity represents (a dropped stack can hold more than one). */
+    public static int looseCount(Entity entity) {
+        if (entity instanceof Item item) {
+            return item.getItemStack().getAmount();
+        }
+        return 1;
     }
 
     /**
