@@ -8,6 +8,10 @@ import com.smp.dragonreign.store.EggDataStore;
 import com.smp.dragonreign.util.Egg;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.World;
+import org.bukkit.entity.FallingBlock;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -161,6 +165,22 @@ public final class HoldTimeTask extends BukkitRunnable {
             missingSamples = 0;
             return;
         }
+        // A dead keeper is not a keeper who lost the egg. The death screen lasts until they
+        // click respawn — which can be minutes, not the "sample or two" the debounce below
+        // was originally sized for — and for all of it their inventory reads empty while the
+        // egg sits safely in the pending-give ledger. Treating that as a deletion is how this
+        // watchdog handed out a second egg on every death.
+        if (player.isDead()) {
+            missingSamples = 0;
+            return;
+        }
+        // The egg is mid-flight through a death: DropProtectionListener pulled it out of the
+        // drops and RespawnSequence will hand it back. It is not carried, placed or loose by
+        // design, and this record is the only proof it still exists.
+        if (plugin.store().peekPendingGive(player.getUniqueId()) > 0) {
+            missingSamples = 0;
+            return;
+        }
         boolean placed = plugin.store().getLocation() != null;
         boolean loose = plugin.voidGuardian() != null && plugin.voidGuardian().hasLooseEgg();
         if (placed || loose) {
@@ -174,7 +194,24 @@ public final class HoldTimeTask extends BukkitRunnable {
         }
         missingSamples++;
         if (missingSamples < 3) {
-            return; // debounce: menus, deaths, and hand-offs all resolve within a sample or two
+            return; // debounce: menus and hand-offs resolve within a sample or two
+        }
+        // Last gate before the only line in this plugin that creates an egg from nothing.
+        // Everything above reads cached state, and every field it reads has a way of being
+        // stale or unset that has nothing to do with the egg being gone: the loose-egg
+        // tracker is gated behind void-safety.enabled, holds a single entity reference, and
+        // is populated from an ItemSpawnEvent that may never fire for some drop paths. So
+        // before conjuring an egg, go and look. This scan only runs at the moment of restore,
+        // never on the ordinary sample, so the common path stays free.
+        if (looseEggExistsAnywhere()) {
+            missingSamples = 0;
+            carriedSeen = false;
+            plugin.inbox().post(Severity.INFO, "Phantom-loss check stood down",
+                    "The Dragon Egg was not on " + player.getName()
+                            + ", but a loose egg was found in the world, so nothing was restored."
+                            + " The loose-egg tracker had missed it.",
+                    player.getUniqueId());
+            return;
         }
         carriedSeen = false;
         missingSamples = 0;
@@ -188,5 +225,27 @@ public final class HoldTimeTask extends BukkitRunnable {
                         + "restored it to them. If this repeats, something is deleting the egg.",
                 player.getUniqueId());
         plugin.saveAsync();
+    }
+
+    /**
+     * Authoritative sweep for a loose egg — a dropped item or a falling block — across every
+     * loaded world. Unlike {@code VoidGuardian.hasLooseEgg()} this asks the server rather
+     * than a cached reference, so it still sees the egg when the tracker never caught the
+     * spawn, was disabled by config, or lost its handle across a chunk unload or restart.
+     */
+    private boolean looseEggExistsAnywhere() {
+        for (World world : Bukkit.getWorlds()) {
+            for (Item item : world.getEntitiesByClass(Item.class)) {
+                if (Egg.isDragonEgg(item.getItemStack())) {
+                    return true;
+                }
+            }
+            for (FallingBlock fb : world.getEntitiesByClass(FallingBlock.class)) {
+                if (fb.getBlockData().getMaterial() == Material.DRAGON_EGG) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

@@ -194,10 +194,18 @@ public final class VoidGuardian implements Listener {
                 return true;
             }
         }
+        // The egg is owed back to someone mid-death. It exists — as a ledger entry rather
+        // than a block or an item — and recovering a "lost" copy now would mean two eggs the
+        // moment that player respawns.
+        if (plugin.store().hasAnyPendingGive()) {
+            return true;
+        }
         UUID owner = plugin.store().getOwner();
         if (owner != null) {
             Player p = Bukkit.getPlayer(owner);
-            if (p != null && p.getInventory().contains(Material.DRAGON_EGG)) {
+            // Covers offhand, armour slots, cursor and bundles — a bare contains() check on
+            // the main inventory misses the egg mid-click and reports the real egg as gone.
+            if (p != null && Egg.isCarrying(p)) {
                 return true;
             }
         }

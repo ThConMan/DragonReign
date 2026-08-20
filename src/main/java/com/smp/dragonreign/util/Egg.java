@@ -138,6 +138,49 @@ public final class Egg {
         return removed;
     }
 
+    /**
+     * Count every dragon egg in an inventory without touching it — the read-only twin of
+     * {@link #purgeFrom(Inventory)}, and it has to stay in step with it. An audit that
+     * searches fewer places than the purge reaches would report "all clear" about eggs the
+     * plugin can plainly see, which is worse than not auditing at all.
+     */
+    public static int countIn(Inventory inventory) {
+        if (inventory == null) {
+            return 0;
+        }
+        int found = 0;
+        for (ItemStack stack : inventory.getContents()) {
+            if (stack == null) {
+                continue;
+            }
+            if (isDragonEgg(stack)) {
+                found += stack.getAmount();
+            } else if (isBundle(stack)) {
+                found += countInBundle(stack);
+            }
+        }
+        return found;
+    }
+
+    /** Count dragon eggs nested in a bundle (recursively), without modifying it. */
+    public static int countInBundle(ItemStack bundle) {
+        if (!(bundle.getItemMeta() instanceof BundleMeta meta) || !meta.hasItems()) {
+            return 0;
+        }
+        int found = 0;
+        for (ItemStack content : meta.getItems()) {
+            if (content == null) {
+                continue;
+            }
+            if (isDragonEgg(content)) {
+                found += content.getAmount();
+            } else if (isBundle(content)) {
+                found += countInBundle(content);
+            }
+        }
+        return found;
+    }
+
     /** Remove dragon eggs nested in a bundle (recursively). Returns the count removed. */
     public static int cleanBundle(ItemStack bundle) {
         if (!(bundle.getItemMeta() instanceof BundleMeta meta) || !meta.hasItems()) {
