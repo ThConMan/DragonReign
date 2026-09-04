@@ -61,7 +61,7 @@ public final class GiveEggCommand implements TabExecutor {
         giver.getInventory().setItemInMainHand(inHand.getAmount() > 0 ? inHand : null);
 
         // Hand it over; drop at their feet if their inventory is full (shared helper).
-        Egg.giveOrDrop(target, 1);
+        Egg.giveOrDrop(target, 1, plugin.store().ensureEggId());
 
         plugin.store().setOwner(target.getUniqueId(), "transfer via /giveegg");
         plugin.store().clearLocation();

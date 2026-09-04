@@ -3,6 +3,7 @@ package com.smp.dragonreign.task;
 import com.smp.dragonreign.DragonReign;
 import com.smp.dragonreign.inbox.Severity;
 import com.smp.dragonreign.model.EggLocation;
+import com.smp.dragonreign.model.EggForm;
 import com.smp.dragonreign.model.EventType;
 import com.smp.dragonreign.store.EggDataStore;
 import com.smp.dragonreign.util.Egg;
@@ -219,7 +220,34 @@ public final class HoldTimeTask extends BukkitRunnable {
         }
         carriedSeen = false;
         missingSamples = 0;
-        Egg.giveOrDrop(player, 1);
+
+        // The identity gate, and the reason the duplicates stopped.
+        //
+        // Every check above reads the WORLD: is it carried, is a block placed,
+        // is anything loose. All three are blind to an unloaded chunk, so an
+        // egg resting in a chest a thousand blocks away looked exactly like an
+        // egg that had been deleted -- and this method resolved that tie by
+        // creating one, which is how a server ends up with two.
+        //
+        // A known id means an egg exists. Not "is visible": exists. There is
+        // nothing to restore, so nothing is minted; the keeper is simply not
+        // holding it at the moment, which is allowed. If it really has been
+        // destroyed, the paths that destroy it clear the id, and the next tick
+        // will restore it properly.
+        UUID known = plugin.store().getEggId();
+        if (known != null) {
+            plugin.inbox().post(Severity.INFO, "Egg not on its keeper",
+                    "The Dragon Egg is not on " + player.getName()
+                            + " and is not placed or loose in any loaded chunk. It still "
+                            + "exists (id " + known + ", last known as "
+                            + plugin.store().getForm() + "), so nothing was created. "
+                            + "It is most likely stored in a chunk nobody has loaded.",
+                    player.getUniqueId());
+            return;
+        }
+
+        Egg.giveOrDrop(player, 1, plugin.store().ensureEggId());
+        plugin.store().setForm(EggForm.CARRIED);
         plugin.store().touchActivity();
         plugin.history().append(EventType.EGG_RECOVERED, player, null,
                 "the egg vanished from their hands — restored it");

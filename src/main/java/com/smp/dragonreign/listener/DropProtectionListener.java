@@ -61,7 +61,7 @@ public final class DropProtectionListener implements Listener {
                     || (plugin.voidGuardian() != null && plugin.voidGuardian().hasLooseEgg())) {
                 return; // the cancel behaved — egg is still where it belongs
             }
-            Egg.giveOrDrop(player, amount);
+            Egg.giveOrDrop(player, amount, plugin.store().ensureEggId());
             plugin.history().append(EventType.EGG_RECOVERED, player, null,
                     "a blocked drop tried to erase the egg — restored it");
             plugin.inbox().post(Severity.WARN, "Egg restored after blocked drop",
@@ -96,7 +96,7 @@ public final class DropProtectionListener implements Listener {
         }
         int amount = cursor.getAmount();
         event.getView().setCursor(null);
-        Egg.giveOrDrop(player, amount);
+        Egg.giveOrDrop(player, amount, plugin.store().ensureEggId());
     }
 
     /**
@@ -147,7 +147,7 @@ public final class DropProtectionListener implements Listener {
         if (count <= 0) {
             return;
         }
-        Egg.giveOrDrop(player, count);
+        Egg.giveOrDrop(player, count, plugin.store().ensureEggId());
         plugin.saveAsync();
     }
 }

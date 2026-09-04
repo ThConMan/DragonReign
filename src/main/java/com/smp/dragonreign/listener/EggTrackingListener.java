@@ -2,6 +2,7 @@ package com.smp.dragonreign.listener;
 
 import com.smp.dragonreign.DragonReign;
 import com.smp.dragonreign.inbox.Severity;
+import com.smp.dragonreign.model.EggForm;
 import com.smp.dragonreign.model.EggLocation;
 import com.smp.dragonreign.model.EventType;
 import com.smp.dragonreign.store.EggDataStore;
@@ -21,6 +22,9 @@ import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.ItemStack;
+
+import java.util.UUID;
 
 /**
  * Read-only bookkeeping at MONITOR priority — it reacts to outcomes the protection
@@ -46,6 +50,17 @@ public final class EggTrackingListener implements Listener {
         }
         Player player = event.getPlayer();
         EggLocation loc = EggLocation.of(block);
+        // A block cannot carry item data, so the id would be lost right here if
+        // the store did not take custody of it. Adopt whatever the placed item
+        // was stamped with; an egg that predates this system carries nothing,
+        // so fall back to the id already held.
+        UUID onItem = Egg.idOf(event.getItemInHand());
+        if (onItem != null) {
+            store().adoptEggId(onItem);
+        } else {
+            store().ensureEggId();
+        }
+        store().setForm(EggForm.PLACED);
         store().setOwner(player.getUniqueId(), "placed");
         store().setLocation(loc);
         store().touchActivity();
@@ -61,6 +76,10 @@ public final class EggTrackingListener implements Listener {
         EggLocation loc = EggLocation.of(block);
         // It's about to become a dropped item / teleport; a pickup event will reassign
         // ownership. We just note it left the placed state.
+        // The drop the block produces is a fresh vanilla ItemStack with no data
+        // on it, so the id lives only in the store until someone picks it up
+        // and onPickup re-stamps it.
+        store().setForm(EggForm.LOOSE);
         store().clearLocation();
         store().touchActivity();
         plugin.history().append(EventType.BROKEN, event.getPlayer(), loc, "broke the egg block");
@@ -71,6 +90,7 @@ public final class EggTrackingListener implements Listener {
         // The egg teleports when struck and can land as a falling block.
         if (event.getEntity() instanceof FallingBlock && event.getTo() == Material.DRAGON_EGG) {
             EggLocation loc = EggLocation.of(event.getBlock());
+            store().setForm(EggForm.PLACED);
             store().setLocation(loc);
             store().touchActivity();
         }
@@ -102,6 +122,19 @@ public final class EggTrackingListener implements Listener {
         if (!Egg.isDragonEgg(event.getItem().getItemStack())) {
             return;
         }
+        // Re-stamp on the way in. An egg that was broken out of block form, or
+        // that predates this system, arrives carrying nothing -- and if it were
+        // left unstamped it would be unrecognisable the next time it turned up
+        // loose in the world.
+        ItemStack picked = event.getItem().getItemStack();
+        UUID onItem = Egg.idOf(picked);
+        if (onItem != null) {
+            store().adoptEggId(onItem);
+        } else {
+            Egg.stamp(picked, store().ensureEggId());
+            event.getItem().setItemStack(picked);
+        }
+        store().setForm(EggForm.CARRIED);
         store().setOwner(player.getUniqueId(), "picked up");
         store().clearLocation();
         store().touchActivity();
@@ -128,7 +161,7 @@ public final class EggTrackingListener implements Listener {
         // here means no respawn intervened. Done before the erase sweep below.
         int owed = store().consumePendingGive(player.getUniqueId());
         if (owed > 0) {
-            Egg.giveOrDrop(player, owed);
+            Egg.giveOrDrop(player, owed, store().ensureEggId());
             plugin.history().append(EventType.BLOCKED_DROP, player, null,
                     "returned " + owed + " death-held egg(s) on join (crash recovery)");
         }

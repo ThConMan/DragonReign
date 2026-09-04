@@ -16,6 +16,21 @@ public final class EggState {
     public long lastActivity;
     public long enforcedClockFloor;   // 0 = none; see EggDataStore.getEnforcedClockFloor
 
+    // The identity of the one egg, and the shape it is currently in.
+    //
+    // Everything used to answer "is the egg still out there" by going to look:
+    // is it carried, is a block placed, is anything loose. All three read world
+    // state, and world state is unreadable for an unloaded chunk -- so an egg
+    // sitting safely in a chest in an unloaded chunk was indistinguishable from
+    // an egg that had been deleted. The watchdog broke that tie by minting a
+    // replacement, which is where the duplicates came from.
+    //
+    // An id changes the question from "can I see it?" to "does it exist?", and
+    // the answer to the second does not depend on which chunks are loaded.
+    // eggId is null only when no egg exists at all.
+    public UUID eggId;
+    public EggForm form = EggForm.NONE;
+
     // When the CURRENT keeper took the egg (epoch millis; 0 = unowned). This is the
     // Dragonlord clock: real elapsed time, not played time, so the title is earned by
     // keeping the egg through a full week of everyone else trying to take it. Any genuine

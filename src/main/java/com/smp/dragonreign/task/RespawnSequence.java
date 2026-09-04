@@ -3,6 +3,7 @@ package com.smp.dragonreign.task;
 import com.smp.dragonreign.DragonReign;
 import com.smp.dragonreign.announce.AnnouncementService;
 import com.smp.dragonreign.inbox.Severity;
+import com.smp.dragonreign.model.EggForm;
 import com.smp.dragonreign.model.EggLocation;
 import com.smp.dragonreign.model.EventType;
 import com.smp.dragonreign.store.EggDataStore;
@@ -60,6 +61,12 @@ public final class RespawnSequence {
                     "deferred — End world unavailable (keeper " + oldOwnerName + " stays until it loads)");
             return;
         }
+        // A respawn is the one moment a genuinely NEW egg exists: everything
+        // that came before is about to be erased and purged below, so the old
+        // identity dies with it. Minting here (rather than reusing) is what
+        // makes a later "this id already exists" check trustworthy.
+        store.newEggId();
+        store.setForm(EggForm.PLACED);
         plugin.history().appendSystem(EventType.EGG_SPAWNED, spawned.get(), "fresh egg on the End fountain");
 
         // An admin putting the egg back on the fountain is the ordinary way an event ends, so
@@ -178,6 +185,10 @@ public final class RespawnSequence {
         plugin.history().appendSystem(EventType.EGG_SPAWNED, spawned.get(),
                 "fresh egg on the End fountain (void recovery)");
 
+        // Same reasoning as the ordinary respawn: the egg the void swallowed is
+        // gone for good, so this is a new one and gets a new identity.
+        store.newEggId();
+        store.setForm(EggForm.PLACED);
         store.setOwner(null, "void recovery");
         store.setLocation(spawned.get());
         store.touchActivity();

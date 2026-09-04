@@ -15,6 +15,8 @@ public final class EggSnapshot {
     public final EggLocation location;
     public final long lastActivity;
     public final long enforcedClockFloor;
+    public final UUID eggId;
+    public final EggForm form;
     public final long ownedSince;
     public final int rewardTier;
     public final long rewardProgressMillis;
@@ -25,6 +27,7 @@ public final class EggSnapshot {
     public final List<HistoryEntry> history;
 
     public EggSnapshot(UUID owner, EggLocation location, long lastActivity, long enforcedClockFloor,
+                       UUID eggId, EggForm form,
                        long ownedSince, int rewardTier, long rewardProgressMillis,
                        Map<UUID, Long> lastSeen, List<UUID> pendingErase,
                        Map<UUID, Integer> pendingGive, Collection<UUID> knownHolders,
@@ -33,6 +36,8 @@ public final class EggSnapshot {
         this.location = location;
         this.lastActivity = lastActivity;
         this.enforcedClockFloor = enforcedClockFloor;
+        this.eggId = eggId;
+        this.form = form;
         this.ownedSince = ownedSince;
         this.rewardTier = rewardTier;
         this.rewardProgressMillis = rewardProgressMillis;

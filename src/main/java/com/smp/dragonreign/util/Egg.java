@@ -2,6 +2,7 @@ package com.smp.dragonreign.util;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.FallingBlock;
@@ -12,9 +13,12 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BundleMeta;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /** Small predicates about dragon eggs and bundles. Stateless on purpose. */
 public final class Egg {
@@ -32,17 +36,64 @@ public final class Egg {
      * server's single unique egg can never silently despawn on the 5-minute item timer
      * while it waits to be picked back up.
      */
-    public static void giveOrDrop(Player player, int count) {
+    public static void giveOrDrop(Player player, int count, UUID eggId) {
         if (player == null || count <= 0) {
             return;
         }
         for (int i = 0; i < count; i++) {
             ItemStack egg = new ItemStack(Material.DRAGON_EGG, 1);
+            stamp(egg, eggId);
             var overflow = player.getInventory().addItem(egg);
             for (ItemStack left : overflow.values()) {
                 Item dropped = player.getWorld().dropItemNaturally(player.getLocation(), left);
                 dropped.setUnlimitedLifetime(true); // the unique egg must never despawn on the ground
             }
+        }
+    }
+
+    // ---------------------------------------------------------------- identity
+    //
+    // The id lives in the item's persistent data, which covers the carried and
+    // loose forms -- most of an egg's life. It does NOT survive being placed as
+    // a block, because item data never does, so the placed form is tracked in
+    // EggDataStore and the item is re-stamped when it is picked back up. The
+    // store is the source of truth; this is only how identity rides along with
+    // the item, so an egg found in the world can be recognised as THE egg
+    // rather than assumed to be one.
+
+    /** dragonreign:egg_id. */
+    private static final NamespacedKey ID_KEY = NamespacedKey.fromString("dragonreign:egg_id");
+
+    /** Write the identity onto an egg item. No-op for a null id or a non-egg. */
+    public static void stamp(ItemStack item, UUID eggId) {
+        if (item == null || eggId == null || ID_KEY == null || !isDragonEgg(item)) {
+            return;
+        }
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) {
+            return;
+        }
+        meta.getPersistentDataContainer().set(ID_KEY, PersistentDataType.STRING, eggId.toString());
+        item.setItemMeta(meta);
+    }
+
+    /** The identity stamped on this egg item, or null if it carries none. */
+    public static UUID idOf(ItemStack item) {
+        if (item == null || ID_KEY == null || !isDragonEgg(item)) {
+            return null;
+        }
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) {
+            return null;
+        }
+        String raw = meta.getPersistentDataContainer().get(ID_KEY, PersistentDataType.STRING);
+        if (raw == null || raw.isEmpty()) {
+            return null;
+        }
+        try {
+            return UUID.fromString(raw);
+        } catch (IllegalArgumentException ex) {
+            return null;
         }
     }
 

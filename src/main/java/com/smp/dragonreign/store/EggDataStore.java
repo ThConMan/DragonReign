@@ -1,5 +1,6 @@
 package com.smp.dragonreign.store;
 
+import com.smp.dragonreign.model.EggForm;
 import com.smp.dragonreign.model.EggLocation;
 import com.smp.dragonreign.model.EggSnapshot;
 import com.smp.dragonreign.model.EggState;
@@ -14,6 +15,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Logger;
@@ -92,6 +94,36 @@ public final class EggDataStore {
         }
 
         state.lastActivity = data.getLong("egg.last-activity", System.currentTimeMillis());
+
+        // Upgrading a save written before eggs had identity. There IS an egg on
+        // this server -- it just predates the id -- so adopt the one that
+        // exists rather than starting from "no egg", which would let the very
+        // first watchdog tick mint a second one on top of it. The form is
+        // inferred from what the old save already knew: a recorded location
+        // means it is a placed block, a recorded owner means someone has it.
+        String idRaw = data.getString("egg.id");
+        if (idRaw != null && !idRaw.isEmpty()) {
+            try {
+                state.eggId = UUID.fromString(idRaw);
+            } catch (IllegalArgumentException ex) {
+                logger.warning("Ignoring malformed egg.id in data.yml: " + idRaw);
+            }
+        }
+        String formRaw = data.getString("egg.form");
+        if (formRaw != null && !formRaw.isEmpty()) {
+            try {
+                state.form = EggForm.valueOf(formRaw.toUpperCase(Locale.ROOT));
+            } catch (IllegalArgumentException ex) {
+                logger.warning("Ignoring malformed egg.form in data.yml: " + formRaw);
+            }
+        }
+        if (state.eggId == null && (state.location != null || state.ownerUuid != null)) {
+            state.eggId = UUID.randomUUID();
+            state.form = state.location != null ? EggForm.PLACED : EggForm.CARRIED;
+            logger.info("Adopted the existing egg into the identity system as "
+                    + state.eggId + " (" + state.form + ").");
+        }
+
         state.enforcedClockFloor = data.getLong("egg.enforced-clock-floor", 0L);
         // Upgrading from a save written before the tenure clock existed: the key is absent
         // but someone already holds the egg. Start their week now rather than backdating it
@@ -213,6 +245,71 @@ public final class EggDataStore {
 
     public void clearLocation() {
         state.location = null;
+    }
+
+    // ---------------------------------------------------------------- identity
+
+    /** The id of the one egg, or null when no egg exists at all. */
+    public UUID getEggId() {
+        return state.eggId;
+    }
+
+    /**
+     * The id to stamp on an egg being handed out, creating one if this server
+     * has no egg right now.
+     *
+     * <p>Every path that hands a player an egg goes through here, so a recovery,
+     * a hand-back after death and an admin /giveegg all reuse the SAME identity.
+     * That is the point: those paths are meant to move the one egg around, not
+     * to make more of it, and before this there was nothing in the data that
+     * could tell the difference.
+     */
+    public UUID ensureEggId() {
+        if (state.eggId == null) {
+            state.eggId = UUID.randomUUID();
+        }
+        return state.eggId;
+    }
+
+    /**
+     * Take an id found stamped on a real egg item as the truth.
+     *
+     * <p>Deliberately trusting: an egg carrying an id is more convincing
+     * evidence than anything the store has cached, since the item is the thing
+     * itself. Worth knowing when a mismatch happens, though -- it means two
+     * stamped eggs are in play, which is the very thing this system exists to
+     * prevent, so it goes in the log rather than passing silently.
+     */
+    public void adoptEggId(UUID found) {
+        if (found == null) {
+            return;
+        }
+        if (state.eggId != null && !state.eggId.equals(found)) {
+            logger.warning("Dragon egg identity changed: had " + state.eggId
+                    + ", adopting " + found + " from an egg item. If this repeats, "
+                    + "more than one stamped egg exists.");
+        }
+        state.eggId = found;
+    }
+
+    /** A brand new egg replaces whatever came before. Used by the respawn. */
+    public UUID newEggId() {
+        state.eggId = UUID.randomUUID();
+        return state.eggId;
+    }
+
+    /** The egg is confirmed gone: erased, or swallowed by the void. */
+    public void clearEggId() {
+        state.eggId = null;
+        state.form = EggForm.NONE;
+    }
+
+    public EggForm getForm() {
+        return state.form == null ? EggForm.NONE : state.form;
+    }
+
+    public void setForm(EggForm form) {
+        state.form = form == null ? EggForm.NONE : form;
     }
 
     public void touchActivity() {
@@ -398,6 +495,8 @@ public final class EggDataStore {
                 state.location,
                 state.lastActivity,
                 state.enforcedClockFloor,
+                state.eggId,
+                state.form,
                 state.ownedSince,
                 state.rewardTier,
                 state.rewardProgressMillis,
@@ -420,6 +519,12 @@ public final class EggDataStore {
             out.set("egg.location", snap.location.serialize());
         }
         out.set("egg.last-activity", snap.lastActivity);
+        if (snap.eggId != null) {
+            out.set("egg.id", snap.eggId.toString());
+        }
+        if (snap.form != null) {
+            out.set("egg.form", snap.form.name());
+        }
         if (snap.enforcedClockFloor > 0) {
             out.set("egg.enforced-clock-floor", snap.enforcedClockFloor);
         }

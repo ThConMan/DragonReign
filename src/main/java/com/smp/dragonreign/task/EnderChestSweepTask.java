@@ -38,7 +38,7 @@ public final class EnderChestSweepTask extends BukkitRunnable {
                 continue;
             }
             // Return the egg(s): straight to the inventory, or at the player's feet if full.
-            Egg.giveOrDrop(player, recovered);
+            Egg.giveOrDrop(player, recovered, plugin.store().ensureEggId());
             plugin.history().append(EventType.ENDERCHEST_RETURN, player, null,
                     "recovered " + recovered + " egg(s) from ender chest");
         }
