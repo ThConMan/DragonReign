@@ -100,11 +100,22 @@ public final class EggDataStore {
         if (state.ownerUuid != null && state.ownedSince <= 0) {
             state.ownedSince = System.currentTimeMillis();
         }
+        state.ownedSince = data.getLong("egg.owned-since", 0L);
+        if (state.ownerUuid != null && state.ownedSince <= 0) {
+            state.ownedSince = System.currentTimeMillis();
+        }
         state.rewardTier = Math.max(0, data.getInt("egg.reward-tier", 0));
         state.rewardProgressMillis = Math.max(0L, data.getLong("egg.reward-progress", 0L));
         state.eventMode = data.getBoolean("egg.event-mode", false);
+        
+        // New fields for identity tracking
+        String eggIdRaw = data.getString("egg.id");
+        if (eggIdRaw != null && !eggIdRaw.isEmpty()) {
+            state.eggId = UUID.fromString(eggIdRaw);
+        }
+        
+        state.form = EggForm.valueOf(data.getString("egg.form", "LOOSE").toUpperCase());
 
-        ConfigurationSection seen = data.getConfigurationSection("last-seen");
         if (seen != null) {
             for (String key : seen.getKeys(false)) {
                 try {

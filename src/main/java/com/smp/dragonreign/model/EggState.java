@@ -14,13 +14,12 @@ public final class EggState {
     public UUID ownerUuid;            // null when unowned
     public EggLocation location;      // null when held (not placed)
     public long lastActivity;
-    public long enforcedClockFloor;   // 0 = none; see EggDataStore.getEnforcedClockFloor
+    public enum EggForm {
+        CARRIED, PLACED, LOOSE, PENDING, FOUNTAIN, UNOBSERVABLE
+    }
 
-    // When the CURRENT keeper took the egg (epoch millis; 0 = unowned). This is the
-    // Dragonlord clock: real elapsed time, not played time, so the title is earned by
-    // keeping the egg through a full week of everyone else trying to take it. Any genuine
-    // ownership change restarts it; a server restart does not, since it is persisted.
-    public long ownedSince;
+    public UUID eggId;            // The unique identity of the egg. Null when unowned.
+    public EggForm form = EggForm.LOOSE; // Current state of the egg.
 
     // Hold-reward ladder for the CURRENT keeper. rewardTier is how many rewards they've
     // already earned; rewardProgressMillis is active held time banked toward the next one.
