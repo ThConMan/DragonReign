@@ -1,7 +1,7 @@
 # DragonReign — Implementation Design
 
-Paper 26.1.2 (MC 26.1.2) plugin that enforces a single special Dragon Egg's rules on an SMP.
-Compiled `--release 21`, runs on Java 25. Package root: `com.smp.dragonreign`.
+Paper 26.2 (MC 26.2) plugin that enforces a single special Dragon Egg's rules on an SMP.
+Compiled `--release 25`, runs on Java 25. Package root: `com.smp.dragonreign`.
 
 This document is the source of truth for the class breakdown, the data-store and config
 schemas, and the handful of correctness traps that actually matter. Implementers should
@@ -413,9 +413,9 @@ config can disable history entries for blocks entirely while keeping the nudges.
 ---
 
 ## 7. Build / packaging
-- `build.sh` (provided) compiles `--release 21` against the staged Paper jar and produces
-  `build/DragonReign-1.0.0.jar`. Green == prints `BUILD OK`.
-- Resources: `plugin.yml` (name/version/main/api-version 1.21, command + permission decls),
+- `build.sh` (provided) compiles `--release 25` against the staged Paper jar and produces
+  `build/DragonReign-<version>.jar`. Green == prints `BUILD OK`.
+- Resources: `plugin.yml` (name/version/main/api-version 26.2, command + permission decls),
   `config.yml` (the commented default in §4). `data.yml` is created at runtime.
 - Deliverables also include `README.md` (rules, config reference, commands, permissions,
   install).

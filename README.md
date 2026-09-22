@@ -5,7 +5,7 @@ an SMP. There is one conceptual egg, and DragonReign makes sure it can't be hidd
 duped, hoarded, or lost to an inactive player — while keeping a full record of
 everything that happens to it.
 
-Built for **Paper / Minecraft 26.1.2** (API level 1.21), Java 21+ bytecode.
+Built for **Paper / Minecraft 26.2** (API level 26.2), Java 25+ bytecode.
 
 ---
 
@@ -453,9 +453,9 @@ There's no saved countdown state to corrupt.
 
 ## Building from source
 
-You need JDK 21+ and a Paper (or Spigot) server jar for 1.21+ to compile against.
+You need JDK 25+ and a Paper (or Spigot) server jar for 26.2+ to compile against.
 
-1. Drop a server jar into `libs/` named `paper-server-26.1.2.jar` (or edit the path
+1. Drop a server jar into `libs/` named `paper-server-26.2.jar` (or edit the path
    at the top of `build.sh` to match yours). It isn't bundled — Mojang/Paper
    licensing, and it's too big for the repo.
 2. Run:
